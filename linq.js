@@ -1,41 +1,47 @@
 
-var LINQ = function (source, operations) {
-	this._source = source;
-	this._operations = operations || [];
-};
+var LINQ = (function () {
 
-LINQ.prototype = {
-	/// Filters a sequence of values based on a predicate. Each element's index is used in the logic of the predicate function.
-	/// predicate<element, int, boolean>
-	where: function (predicate) {
-		var operations = [];
+	var LINQ = function (source, operations) {
+		this._source = source;
+		this._operations = operations || [];
+	};
 
-		this._operations.forEach(function (operation) {
-			operations.push(operation);
-		});
+	LINQ.prototype = {
+		/// Filters a sequence of values based on a predicate. Each element's index is used in the logic of the predicate function.
+		/// predicate<element, int, boolean>
+		where: function (predicate) {
+			var operations = [];
 
-		operations.push({
-			name: 'where',
-			predicate: predicate
-		});
+			this._operations.forEach(function (operation) {
+				operations.push(operation);
+			});
 
-		return new LINQ(this._source, operations);
-	},
-	/// Creates an array.
-	toArray: function () {
-		var self = this;
+			operations.push({
+				name: 'where',
+				predicate: predicate
+			});
 
-		var array = [];
+			return new LINQ(this._source, operations);
+		},
+		/// Creates an array.
+		toArray: function () {
+			var self = this;
 
-		// perform operations
-		this._operations.forEach(function (operation) {
-			if (operation.name === 'where') {
-				array = self._source.filter(function (element, index) {
-					return operation.predicate(element, index);
-				});
-			}
-		});
+			var array = [];
 
-		return array;
-	}
-};
+			// perform operations
+			this._operations.forEach(function (operation) {
+				if (operation.name === 'where') {
+					array = self._source.filter(function (element, index) {
+						return operation.predicate(element, index);
+					});
+				}
+			});
+
+			return array;
+		}
+	};
+
+	return LINQ;
+
+})();
