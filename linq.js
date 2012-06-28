@@ -26,12 +26,12 @@ var LINQ = (function () {
 		toArray: function () {
 			var self = this;
 
-			var array = [];
+			var array = this._source;
 
 			// perform operations
 			this._operations.forEach(function (operation) {
 				if (operation.name === 'where') {
-					array = self._source.filter(function (element, index) {
+					array = array.filter(function (element, index) {
 						return operation.predicate(element, index);
 					});
 				}
