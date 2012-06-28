@@ -7,6 +7,21 @@ var LINQ = (function () {
 	};
 
 	LINQ.prototype = {
+		/// Returns a specified number of contiguous elements from the start of a sequence.
+		take: function (count) {
+			var operations = [];
+
+			this._operations.forEach(function (operation) {
+				operations.push(operation);
+			});
+
+			operations.push({
+				name: 'take',
+				count: count
+			});
+
+			return new LINQ(this._source, operations);
+		},
 		/// Creates an array.
 		toArray: function () {
 			var self = this;
