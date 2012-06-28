@@ -9,18 +9,10 @@ var LINQ = (function () {
 	LINQ.prototype = {
 		/// Returns a specified number of contiguous elements from the start of a sequence.
 		take: function (count) {
-			var operations = [];
-
-			this._operations.forEach(function (operation) {
-				operations.push(operation);
-			});
-
-			operations.push({
+			return deferred(this, {
 				name: 'take',
 				count: count
 			});
-
-			return new LINQ(this._source, operations);
 		},
 		/// Creates an array.
 		toArray: function () {
@@ -42,21 +34,30 @@ var LINQ = (function () {
 		/// Filters a sequence of values based on a predicate. Each element's index is used in the logic of the predicate function.
 		/// predicate<element, int, boolean>
 		where: function (predicate) {
-			var operations = [];
-
-			this._operations.forEach(function (operation) {
-				operations.push(operation);
-			});
-
-			operations.push({
+			return deferred(this, {
 				name: 'where',
 				predicate: predicate
 			});
-
-			return new LINQ(this._source, operations);
 		}
 	};
 
 	return LINQ;
+
+	/*
+	 *	Utils
+	 */
+
+	// for easy creating functions of deferred execution
+	function deferred(linq, add) {
+		var cloned = [];
+
+		linq._operations.forEach(function (operation) {
+			cloned.push(operation);
+		});
+
+		cloned.push(add);
+
+		return new LINQ(linq._source, cloned);
+	}
 
 })();
