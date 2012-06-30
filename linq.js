@@ -48,6 +48,14 @@ var LINQ = (function () {
 	};
 
 	LINQ.prototype = {
+		// Returns distinct elements from a sequence by using the default equality comparer to compare values.
+		distinct: function () {
+			return deferred(this, {
+				properties: {},
+
+				call: distinct
+			});
+		},
 		// Inverts the order of the elements in a sequence.
 		reverse: function () {
 			return deferred(this, {
@@ -138,6 +146,28 @@ var LINQ = (function () {
 	/*
 	 *	Deferred execution
 	 */
+	
+	function distinct(source, properties) {
+		var array = [];
+
+		var flags = LINQ.repeat(true, source.length).toArray();
+
+		for (var i = 0, length = source.length; i < length; i++) {
+			if (!flags[i]) { continue; }
+
+			for (var j = i + 1; j < length; j++) {
+				if (!flags[j]) { continue; }
+
+				if (source[i] === source[j]) {
+					flags[j] = false;
+				}
+			}
+
+			array.push(source[i]);
+		}
+
+		return array;
+	}
 	
 	function range(source, properties) {
 		var array = [];
