@@ -23,6 +23,7 @@ var LINQ = (function () {
 		this._operations = operations || [];
 	};
 
+	// Generates a sequence of integral numbers within a specified range.
 	LINQ.range = function (start, count) {
 		return new LINQ([], [{
 			properties: {
@@ -34,6 +35,7 @@ var LINQ = (function () {
 		}]);
 	};
 
+	// Generates a sequence that contains one repeated value.
 	LINQ.repeat = function (element, count) {
 		return new LINQ([], [{
 			properties: {
@@ -75,6 +77,8 @@ var LINQ = (function () {
 				call: skip
 			});
 		},
+		// Bypasses elements in a sequence as long as a specified condition is true and then returns the remaining elements. The element's index is used in the logic of the predicate function.
+		// predicate<element, index, boolean>
 		skipWhile: function (predicate) {
 			return deferred(this, {
 				properties: {
@@ -84,7 +88,7 @@ var LINQ = (function () {
 				call: skipWhile
 			});
 		},
-		/// Returns a specified number of contiguous elements from the start of a sequence.
+		// Returns a specified number of contiguous elements from the start of a sequence.
 		take: function (count) {
 			return deferred(this, {
 				properties: {
@@ -94,6 +98,8 @@ var LINQ = (function () {
 				call: take
 			});
 		},
+		// Returns elements from a sequence as long as a specified condition is true. The element's index is used in the logic of the predicate function.
+		// predicate<element, index, boolean>
 		takeWhile: function (predicate) {
 			return deferred(this, {
 				properties: {
@@ -103,7 +109,7 @@ var LINQ = (function () {
 				call: takeWhile
 			});
 		},
-		/// Creates an array.
+		// Creates an array.
 		toArray: function () {
 			var array = this._source;
 
@@ -114,8 +120,8 @@ var LINQ = (function () {
 
 			return array;
 		},
-		/// Filters a sequence of values based on a predicate. Each element's index is used in the logic of the predicate function.
-		/// predicate<element, int, boolean>
+		// Filters a sequence of values based on a predicate. Each element's index is used in the logic of the predicate function.
+		// predicate<element, int, boolean>
 		where: function (predicate) {
 			return deferred(this, {
 				properties: {
