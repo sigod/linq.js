@@ -22,9 +22,7 @@ var LINQ = (function () {
 			return deferred(this, {
 				properties: {},
 
-				call: function (source) {
-					return source.reverse();
-				}
+				call: reverse
 			});
 		},
 		// Projects each element of a sequence into a new form by incorporating the element's index.
@@ -35,15 +33,7 @@ var LINQ = (function () {
 					predicate: predicate
 				},
 
-				call: function (source, properties) {
-					var result = [];
-
-					source.forEach(function (e, i) {
-						result.push(properties.predicate(e, i));
-					});
-
-					return result;
-				}
+				call: select
 			});
 		},
 		// Bypasses a specified number of elements in a sequence and then returns the remaining elements.
@@ -53,9 +43,7 @@ var LINQ = (function () {
 					count: count
 				},
 
-				call: function (source, properties) {
-					return source.slice(properties.count);
-				}
+				call: skip
 			});
 		},
 		/// Returns a specified number of contiguous elements from the start of a sequence.
@@ -65,9 +53,7 @@ var LINQ = (function () {
 					count: count
 				},
 				
-				call: function (source, properties) {
-					return source.slice(0, properties.count);
-				}
+				call: take
 			});
 		},
 		/// Creates an array.
@@ -89,14 +75,42 @@ var LINQ = (function () {
 					predicate: predicate
 				},
 
-				call: function (source, properties) {
-					return source.filter(properties.predicate);
-				}
+				call: where
 			});
 		}
 	};
 
 	return LINQ;
+
+	/*
+	 *	Deferred execution
+	 */
+	
+	function reverse(source) {
+		return source.reverse();
+	}
+	
+	function select(source, properties) {
+		var result = [];
+
+		source.forEach(function (e, i) {
+			result.push(properties.predicate(e, i));
+		});
+
+		return result;
+	}
+	
+	function skip(source, properties) {
+		return source.slice(properties.count);
+	}
+	
+	function take(source, properties) {
+		return source.slice(0, properties.count);
+	}
+	
+	function where(source, properties) {
+		return source.filter(properties.predicate);
+	}
 
 	/*
 	 *	Utils
