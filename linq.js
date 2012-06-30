@@ -27,6 +27,25 @@ var LINQ = (function () {
 				}
 			});
 		},
+		// Projects each element of a sequence into a new form by incorporating the element's index.
+		// predicate<element, index, result>
+		select: function (predicate) {
+			return deferred(this, {
+				properties: {
+					predicate: predicate
+				},
+
+				call: function (source, properties) {
+					var result = [];
+
+					source.forEach(function (e, i) {
+						result.push(properties.predicate(e, i));
+					});
+
+					return result;
+				}
+			});
+		},
 		// Bypasses a specified number of elements in a sequence and then returns the remaining elements.
 		skip: function (count) {
 			return deferred(this, {
