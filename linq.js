@@ -48,6 +48,7 @@ var LINQ = (function () {
 	};
 
 	LINQ.prototype = {
+		constructor: LINQ, // for returning missed constructor after assigning object to prototype
 		// Concatenates two sequences.
 		concat: function (sequence) {
 			if (sequence.constructor !== LINQ) {
