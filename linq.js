@@ -48,6 +48,21 @@ var LINQ = (function () {
 	};
 
 	LINQ.prototype = {
+		// Concatenates two sequences.
+		concat: function (sequence) {
+			if (sequence.constructor !== LINQ) {
+				if (console) { console.error('LINQ: not supported type of sequence!'); }
+				return null;
+			}
+
+			return deferred(this, {
+				properties: {
+					sequence: sequence
+				},
+
+				call: concat
+			});
+		},
 		// Returns distinct elements from a sequence by using the default equality comparer to compare values.
 		distinct: function () {
 			return deferred(this, {
@@ -147,6 +162,20 @@ var LINQ = (function () {
 	 *	Deferred execution
 	 */
 	
+	function concat(source, properties) {
+		var result = [];
+
+		source.forEach(function (e) {
+			result.push(e);
+		});
+
+		properties.sequence.toArray().forEach(function (e) {
+			result.push(e);
+		});
+
+		return result;
+	}
+
 	function distinct(source, properties) {
 		var array = [];
 
