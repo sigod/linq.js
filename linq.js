@@ -7,6 +7,16 @@ var LINQ = (function () {
 	};
 
 	LINQ.prototype = {
+		// Inverts the order of the elements in a sequence.
+		reverse: function () {
+			return deferred(this, {
+				properties: {},
+
+				call: function (source) {
+					return source.reverse();
+				}
+			});
+		},
 		/// Returns a specified number of contiguous elements from the start of a sequence.
 		take: function (count) {
 			return deferred(this, {
