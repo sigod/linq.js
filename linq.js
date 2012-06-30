@@ -23,6 +23,17 @@ var LINQ = (function () {
 		this._operations = operations || [];
 	};
 
+	LINQ.repeat = function (element, count) {
+		return new LINQ([], [{
+			properties: {
+				element: element,
+				count: count
+			},
+
+			call: repeat
+		}]);
+	};
+
 	LINQ.prototype = {
 		// Inverts the order of the elements in a sequence.
 		reverse: function () {
@@ -111,6 +122,16 @@ var LINQ = (function () {
 	 *	Deferred execution
 	 */
 	
+	function repeat(source, properties) {
+		var array = [];
+
+		for (var i = 0; i < properties.count; i++) {
+			array.push(properties.element);
+		}
+
+		return array;
+	}
+
 	function reverse(source) {
 		return source.reverse();
 	}
