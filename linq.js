@@ -72,6 +72,15 @@ var LINQ = (function () {
 				call: take
 			});
 		},
+		takeWhile: function (predicate) {
+			return deferred(this, {
+				properties: {
+					predicate: predicate
+				},
+
+				call: takeWhile
+			});
+		},
 		/// Creates an array.
 		toArray: function () {
 			var array = this._source;
@@ -143,6 +152,20 @@ var LINQ = (function () {
 		return source.slice(0, properties.count);
 	}
 	
+	function takeWhile(source, properties) {
+		var array = [];
+
+		for (var i = 0, length = source.length; i < length; i++) {
+			if (!properties.predicate(source[i], i)) {
+				break;
+			}
+
+			array.push(source[i]);
+		}
+
+		return array;
+	}
+
 	function where(source, properties) {
 		return source.filter(properties.predicate);
 	}
