@@ -49,6 +49,10 @@ var LINQ = (function () {
 
 	LINQ.prototype = {
 		constructor: LINQ, // for returning missed constructor after assigning object to prototype
+		// Determines whether all elements of a sequence satisfy a condition.
+		all: function (predicate) {
+			return this.toArray().every(predicate);
+		},
 		// Concatenates two sequences.
 		concat: function (sequence) {
 			return deferred(this, {
