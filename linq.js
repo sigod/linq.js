@@ -2,7 +2,17 @@
 var LINQ = (function () {
 
 	var LINQ = function (source, operations) {
-		this._source = source;
+		if (source.constructor === Array) {
+			this._source = source;
+		}
+		else if (source.constructor === NodeList) {
+			this._source = [];
+
+			for (var i = 0, length = source.length; i < length; i++) {
+				this._source.push(source[i]);
+			}
+		}
+		
 		this._operations = operations || [];
 	};
 
