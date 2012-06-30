@@ -14,6 +14,9 @@ var LINQ = (function () {
 				count: count
 			});
 		},
+		_take: function (source, properties) {
+			return source.slice(0, properties.count);
+		},
 		/// Creates an array.
 		toArray: function () {
 			var self = this;
@@ -22,11 +25,7 @@ var LINQ = (function () {
 
 			// perform operations
 			this._operations.forEach(function (operation) {
-				if (operation.name === 'where') {
-					array = array.filter(function (element, index) {
-						return operation.predicate(element, index);
-					});
-				}
+				array = self['_' + operation.name](array, operation);
 			});
 
 			return array;
@@ -38,6 +37,9 @@ var LINQ = (function () {
 				name: 'where',
 				predicate: predicate
 			});
+		},
+		_where: function (source, properties) {
+			return source.filter(properties.predicate);
 		}
 	};
 
