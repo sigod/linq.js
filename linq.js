@@ -5,6 +5,9 @@ var LINQ = (function () {
 		if (source.constructor === Array) {
 			this._source = source;
 		}
+		else if (source.constructor === LINQ) {
+			return source;
+		}
 		else if (source.constructor === NodeList
 			|| source.constructor === HTMLSelectElement) {
 			this._source = [];
