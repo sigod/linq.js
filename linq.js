@@ -23,6 +23,17 @@ var LINQ = (function () {
 		this._operations = operations || [];
 	};
 
+	LINQ.range = function (start, count) {
+		return new LINQ([], [{
+			properties: {
+				start: start,
+				count: count
+			},
+
+			call: range
+		}]);
+	};
+
 	LINQ.repeat = function (element, count) {
 		return new LINQ([], [{
 			properties: {
@@ -121,6 +132,16 @@ var LINQ = (function () {
 	/*
 	 *	Deferred execution
 	 */
+	
+	function range(source, properties) {
+		var array = [];
+
+		for (var i = 0; i < properties.count; i++) {
+			array.push(i + properties.start);
+		}
+
+		return array;
+	}
 	
 	function repeat(source, properties) {
 		var array = [];
