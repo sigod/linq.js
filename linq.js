@@ -10,22 +10,22 @@ var LINQ = (function () {
 		/// Returns a specified number of contiguous elements from the start of a sequence.
 		take: function (count) {
 			return deferred(this, {
-				name: 'take',
-				count: count
+				properties: {
+					count: count
+				},
+				
+				call: function (source, properties) {
+					return source.slice(0, properties.count);
+				}
 			});
-		},
-		_take: function (source, properties) {
-			return source.slice(0, properties.count);
 		},
 		/// Creates an array.
 		toArray: function () {
-			var self = this;
-
 			var array = this._source;
 
 			// perform operations
 			this._operations.forEach(function (operation) {
-				array = self['_' + operation.name](array, operation);
+				array = operation.call(array, operation.properties);
 			});
 
 			return array;
@@ -34,12 +34,14 @@ var LINQ = (function () {
 		/// predicate<element, int, boolean>
 		where: function (predicate) {
 			return deferred(this, {
-				name: 'where',
-				predicate: predicate
+				properties: {
+					predicate: predicate
+				},
+
+				call: function (source, properties) {
+					return source.filter(properties.predicate);
+				}
 			});
-		},
-		_where: function (source, properties) {
-			return source.filter(properties.predicate);
 		}
 	};
 
