@@ -5,12 +5,16 @@ var LINQ = (function () {
 		if (source.constructor === Array) {
 			this._source = source;
 		}
-		else if (source.constructor === NodeList) {
+		else if (source.constructor === NodeList
+			|| source.constructor === HTMLSelectElement) {
 			this._source = [];
 
 			for (var i = 0, length = source.length; i < length; i++) {
 				this._source.push(source[i]);
 			}
+		}
+		else {
+			if (console) console.error('LINQ: not supported source type!');
 		}
 		
 		this._operations = operations || [];
