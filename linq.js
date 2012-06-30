@@ -17,6 +17,18 @@ var LINQ = (function () {
 				}
 			});
 		},
+		// Bypasses a specified number of elements in a sequence and then returns the remaining elements.
+		skip: function (count) {
+			return deferred(this, {
+				properties: {
+					count: count
+				},
+
+				call: function (source, properties) {
+					return source.slice(properties.count);
+				}
+			});
+		},
 		/// Returns a specified number of contiguous elements from the start of a sequence.
 		take: function (count) {
 			return deferred(this, {
