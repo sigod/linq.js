@@ -53,6 +53,15 @@ var LINQ = (function () {
 				call: skip
 			});
 		},
+		skipWhile: function (predicate) {
+			return deferred(this, {
+				properties: {
+					predicate: predicate
+				},
+
+				call: skipWhile
+			});
+		},
 		/// Returns a specified number of contiguous elements from the start of a sequence.
 		take: function (count) {
 			return deferred(this, {
@@ -109,6 +118,25 @@ var LINQ = (function () {
 	
 	function skip(source, properties) {
 		return source.slice(properties.count);
+	}
+
+	function skipWhile(source, properties) {
+		var array = [];
+
+		source.forEach(function (e, i) {
+			each(e, i);
+		});
+
+		return array;
+
+
+		function each(e, i) {
+			if (!properties.predicate(e, i)) {
+				each = function (e) {
+					array.push(e);
+				}
+			}
+		}
 	}
 	
 	function take(source, properties) {
