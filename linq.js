@@ -51,14 +51,9 @@ var LINQ = (function () {
 		constructor: LINQ, // for returning missed constructor after assigning object to prototype
 		// Concatenates two sequences.
 		concat: function (sequence) {
-			if (sequence.constructor !== LINQ) {
-				if (console) { console.error('LINQ: not supported type of sequence!'); }
-				return null;
-			}
-
 			return deferred(this, {
 				properties: {
-					sequence: sequence
+					sequence: new LINQ(sequence)
 				},
 
 				call: concat
