@@ -17,6 +17,7 @@ var LINQ = (function () {
 			}
 		}
 		else {
+			// todo: throw exception
 			if (console) console.error('LINQ: not supported source type!');
 		}
 		
@@ -53,6 +54,16 @@ var LINQ = (function () {
 		all: function (predicate) {
 			return this.toArray().every(predicate);
 		},
+
+		any: function (predicate) {
+			return this.count(predicate) > 0;
+		},
+
+		average: function (selector) {
+			var list = this.toList();
+
+			return list.sum(predicate) / list.count();
+		},
 		// Concatenates two sequences.
 		concat: function (sequence) {
 			return deferred(this, {
@@ -63,6 +74,10 @@ var LINQ = (function () {
 				call: concat
 			});
 		},
+		// Returns a number that represents how many elements in the specified sequence satisfy a condition.
+		count: function (predicate) {
+			return (predicate ? this.where(predicate) : this).toArray().length;
+		},
 		// Returns distinct elements from a sequence by using the default equality comparer to compare values.
 		distinct: function () {
 			return deferred(this, {
@@ -70,6 +85,55 @@ var LINQ = (function () {
 
 				call: distinct
 			});
+		},
+		first: function (predicate) {
+			// todo: throw exception
+			return this.firstOrDefault(predicate);
+		},
+		// Returns the first element of the sequence that satisfies a condition or a default value if no such element is found.
+		firstOrDefault: function (predicate) {
+			return (predicate ? this.where(predicate) : this).toArray()[0] || null;
+		},
+		last: function (predicate) {
+			// todo: throw exception
+			return this.lastOrDefault();
+		},
+		lastOrDefault: function (predicate) {
+			var array = (predicate ? this.where(predicate) : this).toArray();
+
+			return array[array.length - 1] || null;
+		},
+		// Returns a number that represents how many elements in the specified sequence satisfy a condition.
+		longCount: function (predicate) {
+			return this.count(predicate);
+		},
+		// Invokes a transform function on each element of a generic sequence and returns the maximum resulting value.
+		max: function (selector) {
+			var array = (selector ? this.select(selector) : this).toArray();
+
+			var max = array[0];
+
+			array.forEach(function (e) {
+				if (max < e) {
+					max = e;
+				}
+			});
+
+			return max || null;
+		},
+		// Invokes a transform function on each element of a generic sequence and returns the minimum resulting value.
+		min: function (selector) {
+			var array = (selector ? this.select(selector) : this).toArray();
+
+			var min = array[0];
+
+			array.forEach(function (e) {
+				if (min > e) {
+					min = e;
+				}
+			});
+
+			return min || null;
 		},
 		// Inverts the order of the elements in a sequence.
 		reverse: function () {
@@ -111,6 +175,20 @@ var LINQ = (function () {
 				call: skipWhile
 			});
 		},
+
+		sum: function (selector) {
+			var array = selector
+				? this.select(selector).toArray()
+				: this.toArray();
+
+			var sum = 0;
+
+			array.forEach(function (e) {
+				sum += e;
+			});
+
+			return sum;
+		},
 		// Returns a specified number of contiguous elements from the start of a sequence.
 		take: function (count) {
 			return deferred(this, {
@@ -142,6 +220,10 @@ var LINQ = (function () {
 			});
 
 			return array;
+		},
+
+		toList: function () {
+			return new LINQ(this.toArray());
 		},
 		// Filters a sequence of values based on a predicate. Each element's index is used in the logic of the predicate function.
 		// predicate<element, int, boolean>
