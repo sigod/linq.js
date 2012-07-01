@@ -207,6 +207,32 @@ var LINQ = (function () {
 			});
 		},
 
+		join: function (inner, outerKeySelector, innerKeySelector, resultSelector) {
+			if (!inner) {
+				throw new Error('inner can not be null');
+			}
+			if (typeof outerKeySelector !== 'function') {
+				throw new Error('outerKeySelector must be a function.');
+			}
+			if (typeof innerKeySelector !== 'function') {
+				throw new Error('innerKeySelector must be a function.');
+			}
+			if (typeof resultSelector !== 'function') {
+				throw new Error('resultSelector must be a function.');
+			}
+
+			return deferred(this, {
+				properties: {
+					inner: new LINQ(inner),
+					outerKeySelector: outerKeySelector,
+					innerKeySelector: innerKeySelector,
+					resultSelector: resultSelector
+				},
+
+				call: join
+			});
+		},
+
 		last: function (predicate) {
 			var last = this.lastOrDefault(predicate);
 
@@ -557,6 +583,22 @@ var LINQ = (function () {
 			if (properties.sequence.contains(e)) {
 				result.push(e);
 			}
+		});
+
+		return result;
+	}
+
+	function join(source, properties) {
+		var inner = properties.inner.toLookup(properties.innerKeySelector);
+
+		var result = [];
+
+		source.forEach(function (e) {
+			var key = properties.outerKeySelector(e);
+
+			(inner[key] || []).forEach(function (r) {
+				result.push(properties.resultSelector(e, r));
+			});
 		});
 
 		return result;
