@@ -167,6 +167,32 @@ var LINQ = (function () {
 			return (predicate ? this.where(predicate) : this).toArray()[0] || null;
 		},
 
+		groupJoin: function (inner, outerKeySelector, innerKeySelector, resultSelector) {
+			if (!inner) {
+				throw new Error('inner can not be null');
+			}
+			if (typeof outerKeySelector !== 'function') {
+				throw new Error('outerKeySelector must be a function.');
+			}
+			if (typeof innerKeySelector !== 'function') {
+				throw new Error('innerKeySelector must be a function.');
+			}
+			if (typeof resultSelector !== 'function') {
+				throw new Error('resultSelector must be a function.');
+			}
+
+			return deferred(this, {
+				properties: {
+					inner: new LINQ(inner),
+					outerKeySelector: outerKeySelector,
+					innerKeySelector: innerKeySelector,
+					resultSelector: resultSelector
+				},
+
+				call: groupJoin
+			});
+		},
+
 		intersect: function(sequence) {
 			if (!sequence) {
 				throw new Error('sequence can not be null');
@@ -501,6 +527,25 @@ var LINQ = (function () {
 				result.push(e);
 			}
 		});
+
+		return result;
+	}
+
+	function groupJoin(source, properties) {
+		var inner = properties.inner.toLookup(properties.innerKeySelector);
+
+		var result = [];
+
+		select(source, {
+			predicate: function (e) {
+				return {
+					key: properties.outerKeySelector(e),
+					element: e
+				};
+			}
+		}).forEach(function (e) {
+			result.push(properties.resultSelector(e.element, inner[e.key] || []));
+		})
 
 		return result;
 	}
