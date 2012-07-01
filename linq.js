@@ -249,6 +249,10 @@ var LINQ = (function () {
 		// Filters a sequence of values based on a predicate. Each element's index is used in the logic of the predicate function.
 		// predicate<element, int, boolean>
 		where: function (predicate) {
+			if (typeof predicate !== 'function') {
+				throw new Error('predicate must be a function.');
+			}
+
 			return deferred(this, {
 				properties: {
 					predicate: predicate
