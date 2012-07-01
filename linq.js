@@ -17,8 +17,7 @@ var LINQ = (function () {
 			}
 		}
 		else {
-			// todo: throw exception
-			if (console) console.error('LINQ: not supported source type!');
+			throw new Error('Not supported source type!');
 		}
 		
 		this._operations = operations || [];
