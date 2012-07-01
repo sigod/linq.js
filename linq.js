@@ -61,6 +61,10 @@ var LINQ = (function () {
 		average: function (selector) {
 			var list = this.toList();
 
+			if (list.count() === 0) {
+				throw new Error('The source sequence is empty.');
+			}
+
 			return list.sum(predicate) / list.count();
 		},
 		// Concatenates two sequences.
@@ -86,16 +90,26 @@ var LINQ = (function () {
 			});
 		},
 		first: function (predicate) {
-			// todo: throw exception
-			return this.firstOrDefault(predicate);
+			var first = this.firstOrDefault(predicate);
+
+			if (first === null) {
+				throw new Error('The source sequence is empty.');
+			}
+
+			return first;
 		},
 		// Returns the first element of the sequence that satisfies a condition or a default value if no such element is found.
 		firstOrDefault: function (predicate) {
 			return (predicate ? this.where(predicate) : this).toArray()[0] || null;
 		},
 		last: function (predicate) {
-			// todo: throw exception
-			return this.lastOrDefault();
+			var last = this.lastOrDefault(predicate);
+
+			if (last === null) {
+				throw new Error('The source sequence is empty.');
+			}
+
+			return last;
 		},
 		lastOrDefault: function (predicate) {
 			var array = (predicate ? this.where(predicate) : this).toArray();
@@ -106,9 +120,13 @@ var LINQ = (function () {
 		longCount: function (predicate) {
 			return this.count(predicate);
 		},
-		// Invokes a transform function on each element of a generic sequence and returns the maximum resulting value.
+		// Invokes a transform function on each element of a sequence and returns the maximum resulting value.
 		max: function (selector) {
 			var array = (selector ? this.select(selector) : this).toArray();
+
+			if (array.length === 0) {
+				throw new Error('The source sequence is empty.');
+			}
 
 			var max = array[0];
 
@@ -118,11 +136,15 @@ var LINQ = (function () {
 				}
 			});
 
-			return max || null;
+			return max;
 		},
-		// Invokes a transform function on each element of a generic sequence and returns the minimum resulting value.
+		// Invokes a transform function on each element of a sequence and returns the minimum resulting value.
 		min: function (selector) {
 			var array = (selector ? this.select(selector) : this).toArray();
+
+			if (array.length === 0) {
+				throw new Error('The source sequence is empty.');
+			}
 
 			var min = array[0];
 
@@ -132,7 +154,7 @@ var LINQ = (function () {
 				}
 			});
 
-			return min || null;
+			return min;
 		},
 		// Inverts the order of the elements in a sequence.
 		reverse: function () {
