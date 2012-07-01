@@ -49,6 +49,23 @@ var LINQ = (function () {
 
 	LINQ.prototype = {
 		constructor: LINQ, // for returning missed constructor after assigning object to prototype
+
+		aggregate: function (seed, func, resultSelector) {
+			if (typeof func !== 'function') {
+				throw new Error('func must be a function.');
+			}
+			if (typeof resultSelector !== 'function') {
+				resultSelector = function (e) { return e; };
+			}
+
+			var accumulate = seed;
+
+			this.toArray().forEach(function (e) {
+				accumulate = func(accumulate, e);
+			});
+
+			return resultSelector(accumulate);
+		},
 		// Determines whether all elements of a sequence satisfy a condition.
 		all: function (predicate) {
 			return this.toArray().every(predicate);
