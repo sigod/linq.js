@@ -69,6 +69,10 @@ var LINQ = (function () {
 		},
 		// Concatenates two sequences.
 		concat: function (sequence) {
+			if (!sequence) {
+				throw new Error('sequence can not be null');
+			}
+
 			return deferred(this, {
 				properties: {
 					sequence: new LINQ(sequence)
@@ -76,6 +80,18 @@ var LINQ = (function () {
 
 				call: concat
 			});
+		},
+
+		contains: function (value) {
+			var array = this.toArray();
+
+			for (var i = 0, length = array.length; i < length; i++) {
+				if (array[i] === value) {
+					return true;
+				}
+			}
+
+			return false;
 		},
 		// Returns a number that represents how many elements in the specified sequence satisfy a condition.
 		count: function (predicate) {
@@ -89,6 +105,37 @@ var LINQ = (function () {
 				call: distinct
 			});
 		},
+
+		elementAt: function (index) {
+			var element = this.elementAtOrDefault(index);
+
+			if (element === null) {
+				throw new Error('No element at that index.');
+			}
+
+			return element;
+		},
+
+		elementAtOrDefault: function (index) {
+			var array = this.toArray();
+
+			return array[index] || null;
+		},
+
+		except: function (sequence) {
+			if (!sequence) {
+				throw new Error('sequence can not be null');
+			}
+
+			return deferred(this, {
+				properties: {
+					sequence: new LINQ(sequence)
+				},
+
+				call: except
+			});
+		},
+
 		first: function (predicate) {
 			var first = this.firstOrDefault(predicate);
 
@@ -102,6 +149,21 @@ var LINQ = (function () {
 		firstOrDefault: function (predicate) {
 			return (predicate ? this.where(predicate) : this).toArray()[0] || null;
 		},
+
+		intersect: function(sequence) {
+			if (!sequence) {
+				throw new Error('sequence can not be null');
+			}
+
+			return deferred(this, {
+				properties: {
+					sequence: new LINQ(sequence)
+				},
+
+				call: intersect
+			});
+		},
+
 		last: function (predicate) {
 			var last = this.lastOrDefault(predicate);
 
@@ -175,6 +237,27 @@ var LINQ = (function () {
 				call: select
 			});
 		},
+
+		sequenceEqual: function (sequence) {
+			if (!sequence) {
+				throw new Error('sequence can not be null');
+			}
+
+			var first = this.toArray();
+			var second = (new LINQ(sequence)).toArray();
+
+			if (first.length !== second.length) {
+				return false;
+			}
+
+			for (var i = 0, length = first.length; i < length; i++) {
+				if (first[i] !== second[i]) {
+					return false;
+				}
+			}
+
+			return false;
+		},
 		// Bypasses a specified number of elements in a sequence and then returns the remaining elements.
 		skip: function (count) {
 			return deferred(this, {
@@ -243,8 +326,58 @@ var LINQ = (function () {
 			return array;
 		},
 
+		toDictionary: function (keySelector, elementSelector) {
+			if (typeof keySelector !== 'function') {
+				throw new Error('keySelector must be a function.');
+			}
+			if (typeof elementSelector !== 'function') {
+				elementSelector = function (e) { return e; };
+			}
+
+			var result = {};
+
+			this.toArray().forEach(function (e) {
+				var key = keySelector(e);
+
+				if (result[key]) {
+					throw new Error('keySelector produces duplicate keys for two elements.');
+				}
+
+				result[key] = elementSelector(e);
+			});
+
+			return result;
+		},
+
 		toList: function () {
 			return new LINQ(this.toArray());
+		},
+
+		toLookup: function (keySelector, elementSelector) {
+			if (typeof keySelector !== 'function') {
+				throw new Error('keySelector must be a function.');
+			}
+			if (typeof elementSelector !== 'function') {
+				elementSelector = function (e) { return e; };
+			}
+
+			var result = {};
+
+			this.toArray().forEach(function (e) {
+				var key = keySelector(e);
+
+				if (!result[key]) {
+					result[key] = [];
+				}
+
+				result[key].push(elementSelector(e));
+			});
+
+			return result;
+		},
+
+		union: function (sequence) {
+			return this.concat(sequence).distinct();
 		},
 		// Filters a sequence of values based on a predicate. Each element's index is used in the logic of the predicate function.
 		// predicate<element, int, boolean>
@@ -259,6 +392,24 @@ var LINQ = (function () {
 				},
 
 				call: where
+			});
+		},
+
+		zip: function (sequence, resultSelector) {
+			if (!sequence) {
+				throw new Error('sequence can not be null');
+			}
+			if (typeof resultSelector !== 'function') {
+				throw new Error('resultSelector must be a function.');
+			}
+
+			return deferred(this, {
+				properties: {
+					sequence: new LINQ(sequence),
+					resultSelector: resultSelector
+				},
+
+				call: zip
 			});
 		}
 	};
@@ -325,6 +476,30 @@ var LINQ = (function () {
 		return array;
 	}
 
+	function except(source, properties) {
+		var result = [];
+
+		source.forEach(function (e) {
+			if (!properties.sequence.contains(e)) {
+				result.push(e);
+			}
+		});
+
+		return result;
+	}
+
+	function intersect(source, properties) {
+		var result = [];
+
+		source.forEach(function (e) {
+			if (properties.sequence.contains(e)) {
+				result.push(e);
+			}
+		});
+
+		return result;
+	}
+
 	function reverse(source) {
 		return source.reverse();
 	}
@@ -384,9 +559,25 @@ var LINQ = (function () {
 		return source.filter(properties.predicate);
 	}
 
+	function zip(source, properties) {
+		var result = [];
+
+		var second = properties.sequence.toArray();
+
+		for (var i = 0, length = min(source.length, second.length); i < length; i++) {
+			result.push(properties.resultSelector(source[i], second[i]));
+		}
+
+		return result;
+	}
+
 	/*
 	 *	Utils
 	 */
+	
+	function min(a, b) {
+		return a < b ? a : b;
+	}
 
 	// for easy creating functions of deferred execution
 	function deferred(linq, add) {
