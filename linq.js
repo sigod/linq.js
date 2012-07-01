@@ -562,15 +562,10 @@ var LINQ = (function () {
 
 		var result = [];
 
-		select(source, {
-			predicate: function (e) {
-				return {
-					key: properties.outerKeySelector(e),
-					element: e
-				};
-			}
-		}).forEach(function (e) {
-			result.push(properties.resultSelector(e.element, inner[e.key] || []));
+		source.forEach(function (e) {
+			var key = properties.outerKeySelector(e);
+
+			result.push(properties.resultSelector(e, inner[key] || []));
 		})
 
 		return result;
