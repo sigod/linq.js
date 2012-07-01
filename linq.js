@@ -307,6 +307,24 @@ var LINQ = (function () {
 			});
 		},
 
+		selectMany: function (collectionSelector, resultSelector) {
+			if (typeof collectionSelector !== 'function') {
+				throw new Error('collectionSelector must be a function.');
+			}
+			if (typeof resultSelector !== 'function') {
+				throw new Error('resultSelector must be a function.');
+			}
+
+			return deferred(this, {
+				properties: {
+					collectionSelector: collectionSelector,
+					resultSelector: resultSelector
+				},
+
+				call: selectMany
+			});
+		},
+
 		sequenceEqual: function (sequence) {
 			if (!sequence) {
 				throw new Error('sequence can not be null');
@@ -609,6 +627,20 @@ var LINQ = (function () {
 		source.forEach(function (e, i) {
 			result.push(properties.predicate(e, i));
 		});
+
+		return result;
+	}
+
+	function selectMany(source, properties) {
+		var result = [];
+
+		source.forEach(function (e, i) {
+			var collection = properties.collectionSelector(e, i);
+
+			(new LINQ(collection)).toArray().forEach(function (e1) {
+				result.push(properties.resultSelector(e, e1));
+			});
+		})
 
 		return result;
 	}
