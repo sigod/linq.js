@@ -820,7 +820,7 @@ var LINQ = (function () {
 
 	// for easy creating functions of deferred execution
 	function deferred(linq, add) {
-		var cloned = cloneArray(linq.operations);
+		var cloned = cloneArray(linq._operations);
 
 		cloned.push(add);
 
