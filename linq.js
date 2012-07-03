@@ -287,6 +287,36 @@ var LINQ = (function () {
 
 			return min;
 		},
+
+		orderBy: function (keySelector) {
+			if (typeof keySelector !== 'function') {
+				throw new Error('keySelector must be a function.');
+			}
+
+			return deferred(this, {
+				properties: {
+					keySelector: keySelector,
+					comparer: defaultComparer
+				},
+
+				call: orderBy
+			});
+		},
+
+		orderByDescending: function (keySelector) {
+			if (typeof keySelector !== 'function') {
+				throw new Error('keySelector must be a function.');
+			}
+
+			return deferred(this, {
+				properties: {
+					keySelector: keySelector,
+					comparer: function (a, b) { return defaultComparer(b, a); }
+				},
+
+				call: orderBy
+			});
+		},
 		// Inverts the order of the elements in a sequence.
 		reverse: function () {
 			return deferred(this, {
@@ -617,6 +647,16 @@ var LINQ = (function () {
 		return result;
 	}
 
+	function orderBy(source, properties) {
+		// we should clone source because sort changes array
+		return cloneArray(source).sort(function (a, b) {
+			return properties.comparer(
+				properties.keySelector(a),
+				properties.keySelector(b)
+			);
+		});
+	}
+
 	function reverse(source) {
 		return source.reverse();
 	}
@@ -706,6 +746,22 @@ var LINQ = (function () {
 	 *	Utils
 	 */
 	
+	function defaultComparer(a, b) {
+		if (a < b) return -1;
+		if (a > b) return 1;
+		return 0;
+	}
+
+	function cloneArray(array) {
+		var result = new Array(array.length);
+
+		array.forEach(function (e, i) {
+			result[i] = e;
+		});
+
+		return result;
+	}
+
 	function min(a, b) {
 		return a < b ? a : b;
 	}
