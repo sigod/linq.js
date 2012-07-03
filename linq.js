@@ -5,7 +5,7 @@ var LINQ = (function () {
 		if (source.constructor === Array) {
 			this._source = source;
 		}
-		else if (source.constructor === LINQ) {
+		else if (source.constructor === LINQ || source.constructor === OrderedLINQ) {
 			return source;
 		}
 		else if (source.constructor === NodeList
