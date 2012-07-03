@@ -167,6 +167,22 @@ var LINQ = (function () {
 			return (predicate ? this.where(predicate) : this).toArray()[0] || null;
 		},
 
+		groupBy: function (keySelector, elementSelector, resultSelector) {
+			if (typeof keySelector !== 'function') {
+				throw new Error('keySelector must be a function.');
+			}
+
+			return deferred(this, {
+				properties: {
+					keySelector: keySelector,
+					elementSelector: elementSelector,
+					resultSelector: resultSelector
+				},
+
+				call: groupBy
+			});
+		},
+
 		groupJoin: function (inner, outerKeySelector, innerKeySelector, resultSelector) {
 			if (!inner) {
 				throw new Error('inner can not be null');
@@ -471,23 +487,8 @@ var LINQ = (function () {
 			if (typeof keySelector !== 'function') {
 				throw new Error('keySelector must be a function.');
 			}
-			if (typeof elementSelector !== 'function') {
-				elementSelector = function (e) { return e; };
-			}
 
-			var result = {};
-
-			this.toArray().forEach(function (e) {
-				var key = keySelector(e);
-
-				if (!result[key]) {
-					result[key] = [];
-				}
-
-				result[key].push(elementSelector(e));
-			});
-
-			return result;
+			return toLookup(this.toArray(), keySelector, elementSelector);
 		},
 
 		union: function (sequence) {
@@ -639,6 +640,22 @@ var LINQ = (function () {
 		return result;
 	}
 
+	function groupBy(source, properties) {
+		var result = [];
+
+		if (typeof properties.resultSelector !== 'function') {
+			properties.resultSelector = function (key, linq) { linq.key = key; return linq; };
+		}
+
+		var lookup = toLookup(source, properties.keySelector, properties.elementSelector);
+
+		for (var key in lookup) {
+			result.push(properties.resultSelector(key, new LINQ(lookup[key])));
+		}
+
+		return result;
+	}
+
 	function groupJoin(source, properties) {
 		var inner = properties.inner.toLookup(properties.innerKeySelector);
 
@@ -776,6 +793,27 @@ var LINQ = (function () {
 
 			return compare;
 		});
+	}
+
+	// defined here for using in two places
+	function toLookup(source, keySelector, elementSelector) {
+		if (typeof elementSelector !== 'function') {
+			elementSelector = function (e) { return e; };
+		}
+
+		var result = {};
+
+		source.forEach(function (e) {
+			var key = keySelector(e);
+
+			if (!result[key]) {
+				result[key] = [];
+			}
+
+			result[key].push(elementSelector(e));
+		});
+
+		return result;
 	}
 
 	function where(source, properties) {
