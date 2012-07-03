@@ -288,34 +288,31 @@ var LINQ = (function () {
 			return min;
 		},
 
-		orderBy: function (keySelector) {
+		orderBy: function (keySelector, comparer) {
 			if (typeof keySelector !== 'function') {
 				throw new Error('keySelector must be a function.');
 			}
 
-			return deferred(this, {
+			var operations = cloneArray(this._operations);
+
+			if (typeof comparer !== 'function') {
+				comparer = defaultComparer;
+			}
+
+			operations.push({
 				properties: {
 					keySelector: keySelector,
-					comparer: defaultComparer
+					comparer: comparer
 				},
 
 				call: orderBy
 			});
+
+			return new OrderedLINQ(this._source, operations);
 		},
 
 		orderByDescending: function (keySelector) {
-			if (typeof keySelector !== 'function') {
-				throw new Error('keySelector must be a function.');
-			}
-
-			return deferred(this, {
-				properties: {
-					keySelector: keySelector,
-					comparer: function (a, b) { return defaultComparer(b, a); }
-				},
-
-				call: orderBy
-			});
+			return this.orderBy(keySelector, function (a, b) { return defaultComparer(b, a); });
 		},
 		// Inverts the order of the elements in a sequence.
 		reverse: function () {
@@ -531,6 +528,39 @@ var LINQ = (function () {
 		}
 	};
 
+	function OrderedLINQ(source, operations) {
+		this._source = source;
+		this._operations = operations;
+	};
+
+	OrderedLINQ.prototype = new LINQ([]);
+
+	OrderedLINQ.prototype.thenBy = function (keySelector, comparer) {
+		if (typeof keySelector !== 'function') {
+			throw new Error('keySelector must be a function.');
+		}
+
+		var cloned = cloneArray(this._operations);
+		var last = cloned[cloned.length - 1];
+
+		if (typeof comparer !== 'function') {
+			comparer = defaultComparer;
+		}
+
+		last.properties.thenBy = {
+			keySelector: keySelector,
+			comparer: comparer
+		};
+
+		last.call = thenBy;
+
+		return new OrderedLINQ(this._source, cloned);
+	};
+
+	OrderedLINQ.prototype.thenByDescending = function (keySelector) {
+		return this.thenBy(keySelector, function (a, b) { return defaultComparer(b, a); });
+	};
+
 	return LINQ;
 
 	/*
@@ -724,6 +754,24 @@ var LINQ = (function () {
 		}
 
 		return array;
+	}
+
+	function thenBy(source, properties) {
+		return cloneArray(source).sort(function (a, b) {
+			var compare = properties.comparer(
+				properties.keySelector(a),
+				properties.keySelector(b)
+			);
+
+			if (compare === 0) {
+				compare = properties.thenBy.comparer(
+					properties.thenBy.keySelector(a),
+					properties.thenBy.keySelector(b)
+				);
+			}
+
+			return compare;
+		});
 	}
 
 	function where(source, properties) {
