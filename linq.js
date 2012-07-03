@@ -528,6 +528,10 @@ var LINQ = (function () {
 		}
 	};
 
+	/*
+	 *	Provide thenBy and thenByDescending functionality.
+	 */
+
 	function OrderedLINQ(source, operations) {
 		this._source = source;
 		this._operations = operations;
