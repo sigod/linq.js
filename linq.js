@@ -2,19 +2,15 @@
 var LINQ = (function () {
 
 	var LINQ = function (source, operations) {
-		if (source.constructor === Array) {
-			this._source = source;
+		if (!source) {
+			throw new Error('source can not be null');
 		}
-		else if (source.constructor === LINQ || source.constructor === OrderedLINQ) {
+
+		if (source.constructor === LINQ || source.constructor === OrderedLINQ) {
 			return source;
 		}
-		else if (source.constructor === NodeList
-			|| source.constructor === HTMLSelectElement) {
-			this._source = [];
-
-			for (var i = 0, length = source.length; i < length; i++) {
-				this._source.push(source[i]);
-			}
+		else if (source.constructor === Array || typeof source.length === 'number') {
+			this._source = source;
 		}
 		else {
 			throw new Error('Not supported source type!');
