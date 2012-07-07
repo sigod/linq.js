@@ -747,24 +747,20 @@ var LINQ = (function () {
 		return source.slice(properties.count);
 	}
 
-	// FIXIT: not added first occurence of 'false'
 	function skipWhile(source, properties) {
 		var array = [];
 
-		for (var i = 0, length = source.length; i < length; i++) {
-			each(source[i], i);
+		var length = source.length;
+		for (var i = 0; i < length; i++) {
+			if (!properties.predicate(source[i], i))
+				break;
+		}
+
+		for (; i < length; i++) {
+			array.push(source[i]);
 		}
 
 		return array;
-
-
-		function each(e, i) {
-			if (!properties.predicate(e, i)) {
-				each = function (e) {
-					array.push(e);
-				}
-			}
-		}
 	}
 	
 	function take(source, properties) {
