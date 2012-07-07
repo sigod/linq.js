@@ -60,9 +60,11 @@ var LINQ = (function () {
 
 			var accumulate = seed;
 
-			this.toArray().forEach(function (e) {
-				accumulate = func(accumulate, e);
-			});
+			var array = this.toArray();
+
+			for (var i = 0, length = array.length; i < length; i++) {
+				accumulate = func(accumulate, array[i]);
+			}
 
 			return resultSelector(accumulate);
 		},
@@ -277,11 +279,11 @@ var LINQ = (function () {
 
 			var max = array[0];
 
-			array.forEach(function (e) {
-				if (max < e) {
-					max = e;
+			for (var i = array.length; i--;) {
+				if (max < array[i]) {
+					max = array[i];
 				}
-			});
+			}
 
 			return max;
 		},
@@ -295,11 +297,11 @@ var LINQ = (function () {
 
 			var min = array[0];
 
-			array.forEach(function (e) {
-				if (min > e) {
-					min = e;
+			for (var i = array.length; i--;) {
+				if (min > array[i]) {
+					min = array[i];
 				}
-			});
+			}
 
 			return min;
 		},
@@ -417,9 +419,9 @@ var LINQ = (function () {
 
 			var sum = 0;
 
-			array.forEach(function (e) {
-				sum += e;
-			});
+			for (var i = array.length; i--;) {
+				sum += array[i];
+			}
 
 			return sum;
 		},
@@ -449,9 +451,9 @@ var LINQ = (function () {
 			var array = this._source;
 
 			// perform operations
-			this._operations.forEach(function (operation) {
-				array = operation.call(array, operation.properties);
-			});
+			for (var i = 0, length = this._operations.length; i < length; i++) {
+				array = this._operations[i].call(array, this._operations[i].properties);
+			}
 
 			return array;
 		},
@@ -465,16 +467,17 @@ var LINQ = (function () {
 			}
 
 			var result = {};
+			var array = this.toArray();
 
-			this.toArray().forEach(function (e) {
-				var key = keySelector(e);
+			for (var i = 0, length = array.length; i < length; i++) {
+				var key = keySelector(array[i]);
 
 				if (result[key]) {
 					throw new Error('keySelector produces duplicate keys for two elements.');
 				}
 
-				result[key] = elementSelector(e);
-			});
+				result[key] = elementSelector(array[i]);
+			}
 
 			return result;
 		},
@@ -575,13 +578,14 @@ var LINQ = (function () {
 	function concat(source, properties) {
 		var result = [];
 
-		source.forEach(function (e) {
-			result.push(e);
-		});
+		for (var i = 0, length = source.length; i < length; i++) {
+			result.push(source[i]);
+		}
 
-		properties.sequence.toArray().forEach(function (e) {
-			result.push(e);
-		});
+		var array = properties.sequence.toArray();
+		for (var i = 0, length = array.length; i < length; i++) {
+			result.push(array[i]);
+		}
 
 		return result;
 	}
@@ -631,11 +635,11 @@ var LINQ = (function () {
 	function except(source, properties) {
 		var result = [];
 
-		source.forEach(function (e) {
-			if (!properties.sequence.contains(e)) {
-				result.push(e);
+		for (var i = 0, length = source.length; i < length; i++) {
+			if (!properties.sequence.contains(array[i])) {
+				result.push(array[i]);
 			}
-		});
+		}
 
 		return result;
 	}
@@ -661,11 +665,11 @@ var LINQ = (function () {
 
 		var result = [];
 
-		source.forEach(function (e) {
-			var key = properties.outerKeySelector(e);
+		for (var i = 0, length = source.length; i < length; i++) {
+			var key = properties.outerKeySelector(source[i]);
 
-			result.push(properties.resultSelector(e, inner[key] || []));
-		})
+			result.push(properties.resultSelector(source[i], inner[key] || []));
+		}
 
 		return result;
 	}
@@ -673,11 +677,11 @@ var LINQ = (function () {
 	function intersect(source, properties) {
 		var result = [];
 
-		source.forEach(function (e) {
-			if (properties.sequence.contains(e)) {
-				result.push(e);
+		for (var i = 0, length = source.length; i < length; i++) {
+			if (properties.sequence.contains(source[i])) {
+				result.push(source[i]);
 			}
-		});
+		}
 
 		return result;
 	}
@@ -687,13 +691,15 @@ var LINQ = (function () {
 
 		var result = [];
 
-		source.forEach(function (e) {
-			var key = properties.outerKeySelector(e);
+		for (var i = 0, ii = source.length; i < ii; i++) {
+			var key = properties.outerKeySelector(source[i]);
 
-			(inner[key] || []).forEach(function (r) {
-				result.push(properties.resultSelector(e, r));
-			});
-		});
+			if (inner[key]) {
+				for (var i = 0, jj = inner[key].length; i < jj; i++) {
+					result.push(properties.resultSelector(source[i], inner[key][j]));
+				}
+			}
+		}
 
 		return result;
 	}
@@ -715,9 +721,9 @@ var LINQ = (function () {
 	function select(source, properties) {
 		var result = [];
 
-		source.forEach(function (e, i) {
-			result.push(properties.predicate(e, i));
-		});
+		for (var i = 0, length = source.length; i < length; i++) {
+			result.push(properties.predicate(source[i], i));
+		}
 
 		return result;
 	}
@@ -725,13 +731,14 @@ var LINQ = (function () {
 	function selectMany(source, properties) {
 		var result = [];
 
-		source.forEach(function (e, i) {
-			var collection = properties.collectionSelector(e, i);
+		for (var i = 0, ii = source.length; i < ii; i++) {
+			var collection = properties.collectionSelector(source[i], i);
+			var array = (new LINQ(collection)).toArray();
 
-			(new LINQ(collection)).toArray().forEach(function (e1) {
-				result.push(properties.resultSelector(e, e1));
-			});
-		})
+			for (var j = 0, jj = array.length; j < jj; j++) {
+				result.push(properties.resultSelector(source[i], array[j]));
+			}
+		}
 
 		return result;
 	}
@@ -740,12 +747,13 @@ var LINQ = (function () {
 		return source.slice(properties.count);
 	}
 
+	// FIXIT: not added first occurence of 'false'
 	function skipWhile(source, properties) {
 		var array = [];
 
-		source.forEach(function (e, i) {
-			each(e, i);
-		});
+		for (var i = 0, length = source.length; i < length; i++) {
+			each(source[i], i);
+		}
 
 		return array;
 
@@ -803,15 +811,15 @@ var LINQ = (function () {
 
 		var result = {};
 
-		source.forEach(function (e) {
-			var key = keySelector(e);
+		for (var i = 0, length = source.length; i < length; i++) {
+			var key = keySelector(source[i]);
 
 			if (!result[key]) {
 				result[key] = [];
 			}
 
-			result[key].push(elementSelector(e));
-		});
+			result[key].push(elementSelector(source[i]));
+		}
 
 		return result;
 	}
@@ -845,9 +853,9 @@ var LINQ = (function () {
 	function cloneArray(array) {
 		var result = new Array(array.length);
 
-		array.forEach(function (e, i) {
-			result[i] = e;
-		});
+		for (var i = 0, length = array.length; i < length; i++) {
+			result[i] = array[i];
+		}
 
 		return result;
 	}
