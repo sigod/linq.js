@@ -70,7 +70,7 @@
 
 			var array = this.toArray();
 
-			for (var i = 0, length = array.length; i < length; i++) {
+			for (var i = 0, length = array.length; i < length; ++i) {
 				accumulate = func(accumulate, array[i]);
 			}
 
@@ -112,7 +112,7 @@
 		contains: function (value) {
 			var array = this.toArray();
 
-			for (var i = 0, length = array.length; i < length; i++) {
+			for (var i = 0, length = array.length; i < length; ++i) {
 				if (array[i] === value) {
 					return true;
 				}
@@ -390,7 +390,7 @@
 				return false;
 			}
 
-			for (var i = 0, length = first.length; i < length; i++) {
+			for (var i = 0, length = first.length; i < length; ++i) {
 				if (first[i] !== second[i]) {
 					return false;
 				}
@@ -459,7 +459,7 @@
 			var array = this._source;
 
 			// perform operations
-			for (var i = 0, length = this._operations.length; i < length; i++) {
+			for (var i = 0, length = this._operations.length; i < length; ++i) {
 				array = this._operations[i].call(array, this._operations[i].properties);
 			}
 
@@ -477,7 +477,7 @@
 			var result = {};
 			var array = this.toArray();
 
-			for (var i = 0, length = array.length; i < length; i++) {
+			for (var i = 0, length = array.length; i < length; ++i) {
 				var key = keySelector(array[i]);
 
 				if (result[key]) {
@@ -586,12 +586,12 @@
 	function concat(source, properties) {
 		var result = [];
 
-		for (var i = 0, length = source.length; i < length; i++) {
+		for (var i = 0, length = source.length; i < length; ++i) {
 			result.push(source[i]);
 		}
 
 		var array = properties.sequence.toArray();
-		for (var i = 0, length = array.length; i < length; i++) {
+		for (var i = 0, length = array.length; i < length; ++i) {
 			result.push(array[i]);
 		}
 
@@ -603,10 +603,10 @@
 
 		var flags = LINQ.repeat(true, source.length).toArray();
 
-		for (var i = 0, length = source.length; i < length; i++) {
+		for (var i = 0, length = source.length; i < length; ++i) {
 			if (!flags[i]) { continue; }
 
-			for (var j = i + 1; j < length; j++) {
+			for (var j = i + 1; j < length; ++j) {
 				if (!flags[j]) { continue; }
 
 				if (source[i] === source[j]) {
@@ -623,7 +623,7 @@
 	function range(source, properties) {
 		var array = [];
 
-		for (var i = 0; i < properties.count; i++) {
+		for (var i = 0; i < properties.count; ++i) {
 			array.push(i + properties.start);
 		}
 
@@ -633,7 +633,7 @@
 	function repeat(source, properties) {
 		var array = [];
 
-		for (var i = 0; i < properties.count; i++) {
+		for (var i = 0; i < properties.count; ++i) {
 			array.push(properties.element);
 		}
 
@@ -643,7 +643,7 @@
 	function except(source, properties) {
 		var result = [];
 
-		for (var i = 0, length = source.length; i < length; i++) {
+		for (var i = 0, length = source.length; i < length; ++i) {
 			if (!properties.sequence.contains(array[i])) {
 				result.push(array[i]);
 			}
@@ -673,7 +673,7 @@
 
 		var result = [];
 
-		for (var i = 0, length = source.length; i < length; i++) {
+		for (var i = 0, length = source.length; i < length; ++i) {
 			var key = properties.outerKeySelector(source[i]);
 
 			result.push(properties.resultSelector(source[i], inner[key] || []));
@@ -685,7 +685,7 @@
 	function intersect(source, properties) {
 		var result = [];
 
-		for (var i = 0, length = source.length; i < length; i++) {
+		for (var i = 0, length = source.length; i < length; ++i) {
 			if (properties.sequence.contains(source[i])) {
 				result.push(source[i]);
 			}
@@ -699,11 +699,11 @@
 
 		var result = [];
 
-		for (var i = 0, ii = source.length; i < ii; i++) {
+		for (var i = 0, ii = source.length; i < ii; ++i) {
 			var key = properties.outerKeySelector(source[i]);
 
 			if (inner[key]) {
-				for (var i = 0, jj = inner[key].length; i < jj; i++) {
+				for (var i = 0, jj = inner[key].length; i < jj; ++i) {
 					result.push(properties.resultSelector(source[i], inner[key][j]));
 				}
 			}
@@ -729,7 +729,7 @@
 	function select(source, properties) {
 		var result = [];
 
-		for (var i = 0, length = source.length; i < length; i++) {
+		for (var i = 0, length = source.length; i < length; ++i) {
 			result.push(properties.predicate(source[i], i));
 		}
 
@@ -739,11 +739,11 @@
 	function selectMany(source, properties) {
 		var result = [];
 
-		for (var i = 0, ii = source.length; i < ii; i++) {
+		for (var i = 0, ii = source.length; i < ii; ++i) {
 			var collection = properties.collectionSelector(source[i], i);
 			var array = (new LINQ(collection)).toArray();
 
-			for (var j = 0, jj = array.length; j < jj; j++) {
+			for (var j = 0, jj = array.length; j < jj; ++j) {
 				result.push(properties.resultSelector(source[i], array[j]));
 			}
 		}
@@ -759,12 +759,12 @@
 		var array = [];
 
 		var length = source.length;
-		for (var i = 0; i < length; i++) {
+		for (var i = 0; i < length; ++i) {
 			if (!properties.predicate(source[i], i))
 				break;
 		}
 
-		for (; i < length; i++) {
+		for (; i < length; ++i) {
 			array.push(source[i]);
 		}
 
@@ -778,7 +778,7 @@
 	function takeWhile(source, properties) {
 		var array = [];
 
-		for (var i = 0, length = source.length; i < length; i++) {
+		for (var i = 0, length = source.length; i < length; ++i) {
 			if (!properties.predicate(source[i], i)) {
 				break;
 			}
@@ -815,7 +815,7 @@
 
 		var result = {};
 
-		for (var i = 0, length = source.length; i < length; i++) {
+		for (var i = 0, length = source.length; i < length; ++i) {
 			var key = keySelector(source[i]);
 
 			if (!result[key]) {
@@ -837,7 +837,7 @@
 
 		var second = properties.sequence.toArray();
 
-		for (var i = 0, length = min(source.length, second.length); i < length; i++) {
+		for (var i = 0, length = min(source.length, second.length); i < length; ++i) {
 			result.push(properties.resultSelector(source[i], second[i]));
 		}
 
