@@ -870,4 +870,19 @@
 		return new LINQ(linq._source, cloned);
 	}
 
+	function toFunction(expr, defaultFunction) {
+		if (typeof expr === 'function') return expr;
+		if (typeof expr === 'string') {
+			var index = expr.indexOf('=>');
+
+			if (index !== -1)
+				return new Function(expr.substr(0, index), 'return ' + expr.substr(index + 2));
+
+			return new Function('$,$$,$$$,$$$$', 'return ' + expr);
+		}
+
+		if (defaultFunction) return defaultFunction;
+
+		throw new Error('parameter must be a function or lambda');
+	}
 }());
