@@ -63,7 +63,7 @@
 				throw new Error('func must be a function.');
 			}
 			if (typeof resultSelector !== 'function') {
-				resultSelector = function (e) { return e; };
+				resultSelector = defaultSelector;
 			}
 
 			var accumulate = seed;
@@ -471,7 +471,7 @@
 				throw new Error('keySelector must be a function.');
 			}
 			if (typeof elementSelector !== 'function') {
-				elementSelector = function (e) { return e; };
+				elementSelector = defaultSelector;
 			}
 
 			var result = {};
@@ -810,7 +810,7 @@
 	// defined here for using in two places
 	function toLookup(source, keySelector, elementSelector) {
 		if (typeof elementSelector !== 'function') {
-			elementSelector = function (e) { return e; };
+			elementSelector = defaultSelector;
 		}
 
 		var result = {};
@@ -848,6 +848,10 @@
 	 *	Utils
 	 */
 	
+	function defaultSelector(e) {
+		return e;
+	}
+
 	function defaultComparer(a, b) {
 		if (a < b) return -1;
 		if (a > b) return 1;
