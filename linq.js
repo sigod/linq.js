@@ -702,10 +702,11 @@
 		for (var i = 0, ii = source.length; i < ii; ++i) {
 			var key = properties.outerKeySelector(source[i]);
 
-			if (inner[key]) {
-				for (var j = 0, jj = inner[key].length; j < jj; ++j) {
-					result.push(properties.resultSelector(source[i], inner[key][j]));
-				}
+			var inner_key = inner[key];
+			if (!inner_key) continue;
+
+			for (var j = 0, jj = inner_key.length; j < jj; ++j) {
+				result.push(properties.resultSelector(source[i], inner_key[j]));
 			}
 		}
 
