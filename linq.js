@@ -1,3 +1,10 @@
+/*!
+ * linq.js 1.0.0
+ * https://github.com/sigod/linq.js
+ *
+ * Licensed under the MIT license.
+ * http://opensource.org/licenses/MIT
+ */
 
 var LINQ = (function () {
 
