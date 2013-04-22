@@ -314,7 +314,7 @@ var LINQ = (function () {
 				throw new Error('keySelector must be a function.');
 			}
 
-			var operations = cloneArray(this._operations);
+			var operations = this._operations.slice();
 
 			if (typeof comparer !== 'function') {
 				comparer = defaultComparer;
@@ -551,7 +551,7 @@ var LINQ = (function () {
 			throw new Error('keySelector must be a function.');
 		}
 
-		var cloned = cloneArray(this._operations);
+		var cloned = this._operations.slice();
 		var last = cloned[cloned.length - 1];
 
 		if (typeof comparer !== 'function') {
@@ -709,7 +709,7 @@ var LINQ = (function () {
 
 	function orderBy(source, properties) {
 		// we should clone source because sort changes array
-		return cloneArray(source).sort(function (a, b) {
+		return source.slice().sort(function (a, b) {
 			return properties.comparer(
 				properties.keySelector(a),
 				properties.keySelector(b)
@@ -785,7 +785,7 @@ var LINQ = (function () {
 	}
 
 	function thenBy(source, properties) {
-		return cloneArray(source).sort(function (a, b) {
+		return source.slice().sort(function (a, b) {
 			var compare = properties.comparer(
 				properties.keySelector(a),
 				properties.keySelector(b)
@@ -849,23 +849,13 @@ var LINQ = (function () {
 		return 0;
 	}
 
-	function cloneArray(array) {
-		var result = new Array(array.length);
-
-		for (var i = 0, length = array.length; i < length; i++) {
-			result[i] = array[i];
-		}
-
-		return result;
-	}
-
 	function min(a, b) {
 		return a < b ? a : b;
 	}
 
 	// for easy creating functions of deferred execution
 	function deferred(linq, add) {
-		var cloned = cloneArray(linq._operations);
+		var cloned = linq._operations.slice();
 
 		cloned.push(add);
 
