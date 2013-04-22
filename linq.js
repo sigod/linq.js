@@ -7,6 +7,7 @@
  */
 
 ; var LINQ = (function () {
+	"use strict";
 
 	var LINQ = function (source, operations) {
 		if (!source) {
