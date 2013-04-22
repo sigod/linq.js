@@ -83,7 +83,7 @@
 			return this.count(predicate) > 0;
 		},
 
-		average: function (selector) {
+		average: function (predicate) {
 			var list = this.toList();
 
 			if (list.count() === 0) {
