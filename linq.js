@@ -14,6 +14,8 @@
 			throw new Error('source can not be null');
 		}
 
+		if (!(this instanceof LINQ)) return new LINQ(source, operations);
+
 		if (Object.prototype.toString.call(source) === '[object Array]') {
 			this._source = source;
 		}
