@@ -6,7 +6,7 @@
  * http://opensource.org/licenses/MIT
  */
 
-var LINQ = (function () {
+; var LINQ = (function () {
 
 	var LINQ = function (source, operations) {
 		if (!source) {
@@ -862,4 +862,4 @@ var LINQ = (function () {
 		return new LINQ(linq._source, cloned);
 	}
 
-})();
+}());
