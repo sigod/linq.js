@@ -13,11 +13,13 @@
 			throw new Error('source can not be null');
 		}
 
-		if (source.constructor === LINQ || source.constructor === OrderedLINQ) {
-			return source;
-		}
-		else if (source.constructor === Array || typeof source.length === 'number') {
+		if (Object.prototype.toString.call(source) === '[object Array]') {
 			this._source = source;
+		}
+		else if (Object.prototype.toString.call(source) === '[object Object]'
+			&& source._isLINQ === true)
+		{
+			return source;
 		}
 		else {
 			throw new Error('Not supported source type!');
@@ -52,6 +54,8 @@
 
 	LINQ.prototype = {
 		constructor: LINQ, // for returning missed constructor after assigning object to prototype
+
+		_isLINQ: true,
 
 		aggregate: function (seed, func, resultSelector) {
 			if (typeof func !== 'function') {
