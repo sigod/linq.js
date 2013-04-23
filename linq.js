@@ -244,10 +244,6 @@
 
 			return array[array.length - 1] || null;
 		},
-		// Returns a number that represents how many elements in the specified sequence satisfy a condition.
-		longCount: function (predicate) {
-			return this.count(predicate);
-		},
 		// Invokes a transform function on each element of a sequence and returns the maximum resulting value.
 		max: function (selector) {
 			var array = (selector ? this.select(selector) : this).toArray();
