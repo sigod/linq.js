@@ -15,8 +15,7 @@
 		if (Object.prototype.toString.call(source) === '[object Array]') {
 			this._source = source;
 		}
-		else if (Object.prototype.toString.call(source) === '[object Object]'
-			&& source._isLINQ === true)
+		else if (typeof source === 'object' && source._isLINQ === true)
 		{
 			return source;
 		}
