@@ -50,6 +50,14 @@ test('elementAtOrDefault', function () {
 	equal(linq.elementAtOrDefault(9), '', 'wrong element');
 });
 
+test('firstOrDefault', function () {
+	var linq = LINQ([0, 1, 2, 3, 4, 5, 6]);
+
+	equal(linq.firstOrDefault(), 0, 'wrong result');
+	equal(linq.firstOrDefault('$ > 4'), 5, 'wrong result');
+	equal(linq.firstOrDefault('$ > 10'), undefined, 'wrong result');
+});
+
 test('where', function() {
 	var original = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
 	var test_array = original.slice();

@@ -156,7 +156,7 @@
 		first: function (predicate) {
 			var first = this.firstOrDefault(predicate);
 
-			if (first === null) {
+			if (typeof first === 'undefined') {
 				throw new Error('The source sequence is empty.');
 			}
 
@@ -164,7 +164,7 @@
 		},
 		// Returns the first element of the sequence that satisfies a condition or a default value if no such element is found.
 		firstOrDefault: function (predicate) {
-			return (predicate ? this.where(predicate) : this).toArray()[0] || null;
+			return (predicate ? this.where(predicate) : this).toArray()[0];
 		},
 
 		groupBy: function (keySelector, elementSelector, resultSelector) {
