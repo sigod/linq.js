@@ -15,8 +15,7 @@
 		if (Object.prototype.toString.call(source) === '[object Array]') {
 			this._source = source;
 		}
-		else if (Object.prototype.toString.call(source) === '[object Object]'
-			&& source._isLINQ === true)
+		else if (typeof source === 'object' && source._isLINQ === true)
 		{
 			return source;
 		}
@@ -57,12 +56,7 @@
 		_isLINQ: true,
 
 		aggregate: function (seed, func, resultSelector) {
-			if (typeof func !== 'function') {
-				throw new Error('func must be a function.');
-			}
-			if (typeof resultSelector !== 'function') {
-				resultSelector = defaultSelector;
-			}
+			func = toFunction(func);
 
 			var accumulate = seed;
 
@@ -72,18 +66,19 @@
 				accumulate = func(accumulate, array[i]);
 			}
 
-			return resultSelector(accumulate);
+			return toFunction(resultSelector, defaultSelector)(accumulate);
 		},
 		// Determines whether all elements of a sequence satisfy a condition.
 		all: function (predicate) {
-			return this.toArray().every(predicate);
+			return this.toArray().every(toFunction(predicate));
 		},
 
 		any: function (predicate) {
-			return this.count(predicate) > 0;
+			// optimize
+			return this.count(toFunction(predicate)) > 0;
 		},
 
-		average: function (selector) {
+		average: function (predicate) {
 			var list = this.toList();
 
 			if (list.count() === 0) {
@@ -176,15 +171,11 @@
 		},
 
 		groupBy: function (keySelector, elementSelector, resultSelector) {
-			if (typeof keySelector !== 'function') {
-				throw new Error('keySelector must be a function.');
-			}
-
 			return deferred(this, {
 				properties: {
-					keySelector: keySelector,
-					elementSelector: elementSelector,
-					resultSelector: resultSelector
+					keySelector: toFunction(keySelector),
+					elementSelector: toFunction(elementSelector, defaultSelector),
+					resultSelector: resultSelector // check
 				},
 
 				call: groupBy
@@ -195,22 +186,13 @@
 			if (!inner) {
 				throw new Error('inner can not be null');
 			}
-			if (typeof outerKeySelector !== 'function') {
-				throw new Error('outerKeySelector must be a function.');
-			}
-			if (typeof innerKeySelector !== 'function') {
-				throw new Error('innerKeySelector must be a function.');
-			}
-			if (typeof resultSelector !== 'function') {
-				throw new Error('resultSelector must be a function.');
-			}
 
 			return deferred(this, {
 				properties: {
 					inner: new LINQ(inner),
-					outerKeySelector: outerKeySelector,
-					innerKeySelector: innerKeySelector,
-					resultSelector: resultSelector
+					outerKeySelector: toFunction(outerKeySelector),
+					innerKeySelector: toFunction(innerKeySelector),
+					resultSelector: toFunction(resultSelector)
 				},
 
 				call: groupJoin
@@ -235,22 +217,13 @@
 			if (!inner) {
 				throw new Error('inner can not be null');
 			}
-			if (typeof outerKeySelector !== 'function') {
-				throw new Error('outerKeySelector must be a function.');
-			}
-			if (typeof innerKeySelector !== 'function') {
-				throw new Error('innerKeySelector must be a function.');
-			}
-			if (typeof resultSelector !== 'function') {
-				throw new Error('resultSelector must be a function.');
-			}
 
 			return deferred(this, {
 				properties: {
 					inner: new LINQ(inner),
-					outerKeySelector: outerKeySelector,
-					innerKeySelector: innerKeySelector,
-					resultSelector: resultSelector
+					outerKeySelector: toFunction(outerKeySelector),
+					innerKeySelector: toFunction(innerKeySelector),
+					resultSelector: toFunction(resultSelector)
 				},
 
 				call: join
@@ -270,10 +243,6 @@
 			var array = (predicate ? this.where(predicate) : this).toArray();
 
 			return array[array.length - 1] || null;
-		},
-		// Returns a number that represents how many elements in the specified sequence satisfy a condition.
-		longCount: function (predicate) {
-			return this.count(predicate);
 		},
 		// Invokes a transform function on each element of a sequence and returns the maximum resulting value.
 		max: function (selector) {
@@ -313,20 +282,12 @@
 		},
 
 		orderBy: function (keySelector, comparer) {
-			if (typeof keySelector !== 'function') {
-				throw new Error('keySelector must be a function.');
-			}
-
 			var operations = this._operations.slice();
-
-			if (typeof comparer !== 'function') {
-				comparer = defaultComparer;
-			}
 
 			operations.push({
 				properties: {
-					keySelector: keySelector,
-					comparer: comparer
+					keySelector: toFunction(keySelector),
+					comparer: toFunction(comparer, defaultComparer)
 				},
 
 				call: orderBy
@@ -420,7 +381,7 @@
 
 		sum: function (selector) {
 			var array = selector
-				? this.select(selector).toArray()
+				? this.select(toFunction(selector)).toArray()
 				: this.toArray();
 
 			var sum = 0;
@@ -446,7 +407,7 @@
 		takeWhile: function (predicate) {
 			return deferred(this, {
 				properties: {
-					predicate: predicate
+					predicate: toFunction(predicate)
 				},
 
 				call: takeWhile
@@ -465,12 +426,8 @@
 		},
 
 		toDictionary: function (keySelector, elementSelector) {
-			if (typeof keySelector !== 'function') {
-				throw new Error('keySelector must be a function.');
-			}
-			if (typeof elementSelector !== 'function') {
-				elementSelector = defaultSelector;
-			}
+			keySelector = toFunction(keySelector);
+			elementSelector = toFunction(elementSelector, defaultSelector);
 
 			var result = {};
 			var array = this.toArray();
@@ -493,11 +450,7 @@
 		},
 
 		toLookup: function (keySelector, elementSelector) {
-			if (typeof keySelector !== 'function') {
-				throw new Error('keySelector must be a function.');
-			}
-
-			return toLookup(this.toArray(), keySelector, elementSelector);
+			return toLookup(this.toArray(), toFunction(keySelector), toFunction(elementSelector, defaultSelector));
 		},
 
 		union: function (sequence) {
@@ -506,13 +459,9 @@
 		// Filters a sequence of values based on a predicate. Each element's index is used in the logic of the predicate function.
 		// predicate<element, int, boolean>
 		where: function (predicate) {
-			if (typeof predicate !== 'function') {
-				throw new Error('predicate must be a function.');
-			}
-
 			return deferred(this, {
 				properties: {
-					predicate: predicate
+					predicate: toFunction(predicate)
 				},
 
 				call: where
@@ -523,14 +472,11 @@
 			if (!sequence) {
 				throw new Error('sequence can not be null');
 			}
-			if (typeof resultSelector !== 'function') {
-				throw new Error('resultSelector must be a function.');
-			}
 
 			return deferred(this, {
 				properties: {
 					sequence: new LINQ(sequence),
-					resultSelector: resultSelector
+					resultSelector: toFunction(resultSelector)
 				},
 
 				call: zip
@@ -550,20 +496,12 @@
 	OrderedLINQ.prototype = new LINQ([]);
 
 	OrderedLINQ.prototype.thenBy = function (keySelector, comparer) {
-		if (typeof keySelector !== 'function') {
-			throw new Error('keySelector must be a function.');
-		}
-
 		var cloned = this._operations.slice();
 		var last = cloned[cloned.length - 1];
 
-		if (typeof comparer !== 'function') {
-			comparer = defaultComparer;
-		}
-
 		last.properties.thenBy = {
-			keySelector: keySelector,
-			comparer: comparer
+			keySelector: toFunction(keySelector),
+			comparer: toFunction(comparer, defaultComparer)
 		};
 
 		last.call = thenBy;
@@ -808,10 +746,8 @@
 
 	// defined here for using in two places
 	function toLookup(source, keySelector, elementSelector) {
-		if (typeof elementSelector !== 'function') {
-			elementSelector = defaultSelector;
-		}
-
+		elementSelector = toFunction(elementSelector, defaultSelector);
+		
 		var result = {};
 
 		for (var i = 0, length = source.length; i < length; ++i) {
@@ -870,4 +806,19 @@
 		return new LINQ(linq._source, cloned);
 	}
 
+	function toFunction(expr, defaultFunction) {
+		if (typeof expr === 'function') return expr;
+		if (typeof expr === 'string') {
+			var index = expr.indexOf('=>');
+
+			if (index !== -1)
+				return new Function(expr.substr(0, index), 'return ' + expr.substr(index + 2));
+
+			return new Function('$,$$,$$$,$$$$', 'return ' + expr);
+		}
+
+		if (defaultFunction) return defaultFunction;
+
+		throw new Error('parameter must be a function or lambda');
+	}
 }());
