@@ -309,7 +309,7 @@
 		select: function (predicate) {
 			return deferred(this, {
 				properties: {
-					predicate: predicate
+					predicate: toFunction(predicate)
 				},
 
 				call: select
@@ -317,17 +317,10 @@
 		},
 
 		selectMany: function (collectionSelector, resultSelector) {
-			if (typeof collectionSelector !== 'function') {
-				throw new Error('collectionSelector must be a function.');
-			}
-			if (typeof resultSelector !== 'function') {
-				throw new Error('resultSelector must be a function.');
-			}
-
 			return deferred(this, {
 				properties: {
-					collectionSelector: collectionSelector,
-					resultSelector: resultSelector
+					collectionSelector: toFunction(collectionSelector),
+					resultSelector: toFunction(resultSelector, defaultSelector2)
 				},
 
 				call: selectMany
@@ -782,6 +775,10 @@
 	
 	function defaultSelector(e) {
 		return e;
+	}
+
+	function defaultSelector2(e1, e2) {
+		return e2;
 	}
 
 	function defaultComparer(a, b) {

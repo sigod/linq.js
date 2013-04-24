@@ -77,6 +77,58 @@ test('orderByDescending', function () {
 	deepEqual(ordered, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], 'wrong result');
 });
 
+test('select', function () {
+	var array = LINQ.range(1, 10).select('$ * $').toArray();
+
+	deepEqual(array, [1, 4, 9, 16, 25, 36, 49, 64, 81, 100], 'wrong result');
+
+	var array = LINQ(['apple', 'banana', 'mango', 'orange', 'passionfruit', 'grape'])
+		.select('fruit, index => { index: index, str: fruit.substr(0, index) }')
+		.toArray()
+	;
+	var expected = [
+		{ index: 0, str: '' },
+		{ index: 1, str: 'b' },
+		{ index: 2, str: 'ma' },
+		{ index: 3, str: 'ora' },
+		{ index: 4, str: 'pass' },
+		{ index: 5, str: 'grape' }
+	];
+
+	deepEqual(array, expected, 'wrong result');
+});
+
+test('selectMany', function () {
+	var array = [
+		{ name: 'Higa, Sidney', pets: ['Scruffy', 'Sam'] },
+		{ name: 'Ashkenazi, Ronen', pets: ['Walker', 'Sugar'] },
+		{ name: 'Price, Vernette', pets: ['Scratches', 'Diesel'] },
+		{ name: 'Hines, Patrick', pets: ['Dusty'] }
+	];
+	var linq = LINQ(array);
+
+	var result = linq
+		.selectMany('owner, index => LINQ(owner.pets).select("pet => " + index + "+ pet")')
+		.toArray()
+	;
+	var expected = ['0Scruffy', '0Sam', '1Walker', '1Sugar', '2Scratches', '2Diesel', '3Dusty'];
+	deepEqual(result, expected, 'wrong result');
+
+	var result = linq
+		.selectMany('$.pets', 'owner, pet => { owner: owner, pet: pet }')
+		.where('$.pet.indexOf("S") === 0')
+		.select('{ owner: $.owner.name, pet: $.pet }')
+		.toArray()
+	;
+	var expected = [
+		{ owner: 'Higa, Sidney', pet: 'Scruffy' },
+		{ owner: 'Higa, Sidney', pet: 'Sam' },
+		{ owner: 'Ashkenazi, Ronen', pet: 'Sugar' },
+		{ owner: 'Price, Vernette', pet: 'Scratches' }
+	];
+	deepEqual(result, expected, 'wrong result');
+});
+
 test('where', function() {
 	var original = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
 	var test_array = original.slice();
