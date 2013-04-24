@@ -230,7 +230,7 @@
 		last: function (predicate) {
 			var last = this.lastOrDefault(predicate);
 
-			if (last === null) {
+			if (typeof last === 'undefined') {
 				throw new Error('The source sequence is empty.');
 			}
 
@@ -239,7 +239,7 @@
 		lastOrDefault: function (predicate) {
 			var array = (predicate ? this.where(predicate) : this).toArray();
 
-			return array[array.length - 1] || null;
+			return array[array.length - 1];
 		},
 		// Invokes a transform function on each element of a sequence and returns the maximum resulting value.
 		max: function (selector) {

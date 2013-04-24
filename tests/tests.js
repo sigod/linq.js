@@ -58,6 +58,14 @@ test('firstOrDefault', function () {
 	equal(linq.firstOrDefault('$ > 10'), undefined, 'wrong result');
 });
 
+test('lastOrDefault', function () {
+	var linq = LINQ.range(0, 11);
+
+	equal(linq.lastOrDefault(), 10, 'wrong result');
+	equal(linq.lastOrDefault('$ < 5'), 4, 'wrong result');
+	equal(linq.lastOrDefault('$ > 10'), undefined, 'wrong result');
+});
+
 test('where', function() {
 	var original = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
 	var test_array = original.slice();
