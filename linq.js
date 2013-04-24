@@ -74,8 +74,7 @@
 		},
 
 		any: function (predicate) {
-			// optimize
-			return this.count(toFunction(predicate)) > 0;
+			return this.toArray().some(toFunction(predicate));
 		},
 
 		average: function (predicate) {
