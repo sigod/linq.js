@@ -293,8 +293,8 @@
 			return new OrderedLINQ(this._source, operations);
 		},
 
-		orderByDescending: function (keySelector) {
-			return this.orderBy(keySelector, function (a, b) { return defaultComparer(b, a); });
+		orderByDescending: function (keySelector, comparer) {
+			return this.orderBy(keySelector, comparer).reverse();
 		},
 		// Inverts the order of the elements in a sequence.
 		reverse: function () {

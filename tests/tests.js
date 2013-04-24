@@ -66,6 +66,17 @@ test('lastOrDefault', function () {
 	equal(linq.lastOrDefault('$ > 10'), undefined, 'wrong result');
 });
 
+test('orderByDescending', function () {
+	var linq = LINQ([0, 3, 1, 9, 2, 6, 8, 4, 7, 5]);
+	var ordered = linq.orderByDescending('$').toArray();
+
+	deepEqual(ordered, [9, 8, 7, 6, 5, 4, 3, 2, 1, 0], 'wrong result');
+
+	var ordered = linq.orderByDescending('$', '($ === $$) ? 0 : ($ > $$) ? -1 : 1').toArray();
+
+	deepEqual(ordered, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], 'wrong result');
+});
+
 test('where', function() {
 	var original = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
 	var test_array = original.slice();
