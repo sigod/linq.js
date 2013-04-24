@@ -58,9 +58,8 @@
 		aggregate: function (seed, func, resultSelector) {
 			func = toFunction(func);
 
-			var accumulate = seed;
-
-			var array = this.toArray();
+			var accumulate = seed,
+				array = this.toArray();
 
 			for (var i = 0, length = array.length; i < length; ++i) {
 				accumulate = func(accumulate, array[i]);
