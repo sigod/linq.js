@@ -10,24 +10,6 @@
 	<div id="qunit"></div>
 	<div id="qunit-fixture"></div>
 	<script src="qunit.js"></script>
-	<script>
-		test('where', function() {
-			var original = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
-			var test_array = original.slice();
-
-			var linq = LINQ(test_array)
-				.where('e => e > 3 && e < 9')
-				.where('$ > 4')
-				.where(function (e) { return e !== 7; })
-			;
-
-			deepEqual(linq.toArray(), [5, 6, 8], 'wrong result');
-			deepEqual(test_array, original, 'source array must not be changed');
-
-			test_array.push(5);
-
-			deepEqual(linq.toArray(), [5, 6, 8, 5], 'wrong result: LINQ should reflect to changes in source');
-		});
-	</script>
+	<script src="tests.js"></script>
 </body>
 </html>
