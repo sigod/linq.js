@@ -79,13 +79,14 @@
 		},
 
 		average: function (predicate) {
-			var list = this.toList();
+			var list = this.toList(),
+				count = list.count(predicate);
 
-			if (list.count() === 0) {
+			if (count === 0) {
 				throw new Error('The source sequence is empty.');
 			}
 
-			return list.sum(predicate) / list.count();
+			return list.sum(predicate) / count;
 		},
 		// Concatenates two sequences.
 		concat: function (sequence) {
