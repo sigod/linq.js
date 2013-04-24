@@ -41,6 +41,15 @@ test('average', function () {
 	equal(result, 6.5, 'wrong result');
 });
 
+test('elementAtOrDefault', function () {
+	var linq = LINQ([0, 1, 2, 3, 4, 5, 6, 7, 8, '']);
+
+	equal(linq.elementAtOrDefault(1), 1, 'wrong element');
+	equal(linq.elementAtOrDefault(8), 8, 'wrong element');
+	equal(linq.elementAtOrDefault(10), null, 'wrong element');
+	equal(linq.elementAtOrDefault(9), '', 'wrong element');
+});
+
 test('where', function() {
 	var original = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
 	var test_array = original.slice();

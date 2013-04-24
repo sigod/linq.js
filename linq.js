@@ -128,7 +128,7 @@
 		elementAt: function (index) {
 			var element = this.elementAtOrDefault(index);
 
-			if (element === null) {
+			if (typeof element === 'undefined') {
 				throw new Error('No element at that index.');
 			}
 
@@ -136,9 +136,7 @@
 		},
 
 		elementAtOrDefault: function (index) {
-			var array = this.toArray();
-
-			return array[index] || null;
+			return this.toArray()[index];
 		},
 
 		except: function (sequence) {
