@@ -4,8 +4,8 @@ test('aggregate', function () {
 
 	var linq = LINQ(original);
 
-	equal(linq.aggregate(100, '$ + $$'), 121, 'wrong result');
-	equal(linq.aggregate(100, '$ + $$', '$ - 100'), 21, 'wrong result');
+	equal(linq.aggregate(100, '$1 + $2'), 121, 'wrong result');
+	equal(linq.aggregate(100, '$1 + $2', '$ - 100'), 21, 'wrong result');
 });
 
 test('all', function () {
@@ -72,7 +72,7 @@ test('orderByDescending', function () {
 
 	deepEqual(ordered, [9, 8, 7, 6, 5, 4, 3, 2, 1, 0], 'wrong result');
 
-	var ordered = linq.orderByDescending('$', '($ === $$) ? 0 : ($ > $$) ? -1 : 1').toArray();
+	var ordered = linq.orderByDescending('$', '($1 === $2) ? 0 : ($1 > $2) ? -1 : 1').toArray();
 
 	deepEqual(ordered, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], 'wrong result');
 });

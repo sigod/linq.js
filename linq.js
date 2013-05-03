@@ -802,7 +802,7 @@
 			if (index !== -1)
 				return new Function(expr.substr(0, index), 'return ' + expr.substr(index + 2));
 
-			return new Function('$,$$,$$$,$$$$', 'return ' + expr);
+			return new Function('$1,$2,$3,$4', 'var $=$1;return ' + expr);
 		}
 
 		if (defaultFunction) return defaultFunction;
