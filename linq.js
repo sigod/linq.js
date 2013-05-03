@@ -26,7 +26,6 @@
 		this._operations = operations || [];
 	};
 
-	// Generates a sequence of integral numbers within a specified range.
 	LINQ.range = function (start, count) {
 		return new LINQ([], [{
 			properties: {
@@ -38,7 +37,6 @@
 		}]);
 	};
 
-	// Generates a sequence that contains one repeated value.
 	LINQ.repeat = function (element, count) {
 		return new LINQ([], [{
 			properties: {
@@ -51,7 +49,7 @@
 	};
 
 	LINQ.prototype = {
-		constructor: LINQ, // for returning missed constructor after assigning object to prototype
+		constructor: LINQ,
 
 		_isLINQ: true,
 
@@ -67,7 +65,7 @@
 
 			return toFunction(resultSelector, defaultSelector)(accumulate);
 		},
-		// Determines whether all elements of a sequence satisfy a condition.
+
 		all: function (predicate) {
 			return this.toArray().every(toFunction(predicate));
 		},
@@ -86,7 +84,7 @@
 
 			return list.sum(predicate) / count;
 		},
-		// Concatenates two sequences.
+
 		concat: function (sequence) {
 			if (!sequence) {
 				throw new Error('sequence can not be null');
@@ -112,11 +110,11 @@
 
 			return false;
 		},
-		// Returns a number that represents how many elements in the specified sequence satisfy a condition.
+
 		count: function (predicate) {
 			return (predicate ? this.where(predicate) : this).toArray().length;
 		},
-		// Returns distinct elements from a sequence by using the default equality comparer to compare values.
+
 		distinct: function () {
 			return deferred(this, {
 				properties: {},
@@ -162,7 +160,7 @@
 
 			return first;
 		},
-		// Returns the first element of the sequence that satisfies a condition or a default value if no such element is found.
+
 		firstOrDefault: function (predicate) {
 			return (predicate ? this.where(predicate) : this).toArray()[0];
 		},
@@ -236,12 +234,13 @@
 
 			return last;
 		},
+
 		lastOrDefault: function (predicate) {
 			var array = (predicate ? this.where(predicate) : this).toArray();
 
 			return array[array.length - 1];
 		},
-		// Invokes a transform function on each element of a sequence and returns the maximum resulting value.
+
 		max: function (selector) {
 			var array = (selector ? this.select(selector) : this).toArray();
 
@@ -259,7 +258,7 @@
 
 			return max;
 		},
-		// Invokes a transform function on each element of a sequence and returns the minimum resulting value.
+
 		min: function (selector) {
 			var array = (selector ? this.select(selector) : this).toArray();
 
@@ -296,7 +295,7 @@
 		orderByDescending: function (keySelector, comparer) {
 			return this.orderBy(keySelector, comparer).reverse();
 		},
-		// Inverts the order of the elements in a sequence.
+
 		reverse: function () {
 			return deferred(this, {
 				properties: {},
@@ -304,8 +303,7 @@
 				call: reverse
 			});
 		},
-		// Projects each element of a sequence into a new form by incorporating the element's index.
-		// predicate<element, index, result>
+
 		select: function (predicate) {
 			return deferred(this, {
 				properties: {
@@ -347,7 +345,7 @@
 
 			return false;
 		},
-		// Bypasses a specified number of elements in a sequence and then returns the remaining elements.
+
 		skip: function (count) {
 			return deferred(this, {
 				properties: {
@@ -357,8 +355,7 @@
 				call: skip
 			});
 		},
-		// Bypasses elements in a sequence as long as a specified condition is true and then returns the remaining elements. The element's index is used in the logic of the predicate function.
-		// predicate<element, index, boolean>
+
 		skipWhile: function (predicate) {
 			return deferred(this, {
 				properties: {
@@ -382,7 +379,7 @@
 
 			return sum;
 		},
-		// Returns a specified number of contiguous elements from the start of a sequence.
+
 		take: function (count) {
 			return deferred(this, {
 				properties: {
@@ -392,8 +389,7 @@
 				call: take
 			});
 		},
-		// Returns elements from a sequence as long as a specified condition is true. The element's index is used in the logic of the predicate function.
-		// predicate<element, index, boolean>
+
 		takeWhile: function (predicate) {
 			return deferred(this, {
 				properties: {
@@ -403,11 +399,10 @@
 				call: takeWhile
 			});
 		},
-		// Creates an array.
+
 		toArray: function () {
 			var array = this._source;
 
-			// perform operations
 			for (var i = 0, length = this._operations.length; i < length; ++i) {
 				array = this._operations[i].call(array, this._operations[i].properties);
 			}
@@ -446,8 +441,7 @@
 		union: function (sequence) {
 			return this.concat(sequence).distinct();
 		},
-		// Filters a sequence of values based on a predicate. Each element's index is used in the logic of the predicate function.
-		// predicate<element, int, boolean>
+
 		where: function (predicate) {
 			return deferred(this, {
 				properties: {
