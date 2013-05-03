@@ -499,8 +499,8 @@
 		return new OrderedLINQ(this._source, cloned);
 	};
 
-	OrderedLINQ.prototype.thenByDescending = function (keySelector) {
-		return this.thenBy(keySelector, function (a, b) { return defaultComparer(b, a); });
+	OrderedLINQ.prototype.thenByDescending = function (keySelector, comparer) {
+		return this.thenBy(keySelector, comparer).reverse();
 	};
 
 	return LINQ;
