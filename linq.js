@@ -6,18 +6,18 @@
  * http://opensource.org/licenses/MIT
  */
 
-var LINQ = (function () {
+; var LINQ = (function () {
+	"use strict";
 
 	var LINQ = function (source, operations) {
-		if (!source) {
-			throw new Error('source can not be null');
-		}
+		if (!(this instanceof LINQ)) return new LINQ(source, operations);
 
-		if (source.constructor === LINQ || source.constructor === OrderedLINQ) {
-			return source;
-		}
-		else if (source.constructor === Array || typeof source.length === 'number') {
+		if (Object.prototype.toString.call(source) === '[object Array]') {
 			this._source = source;
+		}
+		else if (typeof source === 'object' && source._isLINQ === true)
+		{
+			return source;
 		}
 		else {
 			throw new Error('Not supported source type!');
@@ -53,41 +53,38 @@ var LINQ = (function () {
 	LINQ.prototype = {
 		constructor: LINQ, // for returning missed constructor after assigning object to prototype
 
+		_isLINQ: true,
+
 		aggregate: function (seed, func, resultSelector) {
-			if (typeof func !== 'function') {
-				throw new Error('func must be a function.');
-			}
-			if (typeof resultSelector !== 'function') {
-				resultSelector = function (e) { return e; };
-			}
+			func = toFunction(func);
 
-			var accumulate = seed;
+			var accumulate = seed,
+				array = this.toArray();
 
-			var array = this.toArray();
-
-			for (var i = 0, length = array.length; i < length; i++) {
+			for (var i = 0, length = array.length; i < length; ++i) {
 				accumulate = func(accumulate, array[i]);
 			}
 
-			return resultSelector(accumulate);
+			return toFunction(resultSelector, defaultSelector)(accumulate);
 		},
 		// Determines whether all elements of a sequence satisfy a condition.
 		all: function (predicate) {
-			return this.toArray().every(predicate);
+			return this.toArray().every(toFunction(predicate));
 		},
 
 		any: function (predicate) {
-			return this.count(predicate) > 0;
+			return this.toArray().some(toFunction(predicate));
 		},
 
-		average: function (selector) {
-			var list = this.toList();
+		average: function (predicate) {
+			var list = this.toList(),
+				count = list.count(predicate);
 
-			if (list.count() === 0) {
+			if (count === 0) {
 				throw new Error('The source sequence is empty.');
 			}
 
-			return list.sum(predicate) / list.count();
+			return list.sum(predicate) / count;
 		},
 		// Concatenates two sequences.
 		concat: function (sequence) {
@@ -107,7 +104,7 @@ var LINQ = (function () {
 		contains: function (value) {
 			var array = this.toArray();
 
-			for (var i = 0, length = array.length; i < length; i++) {
+			for (var i = 0, length = array.length; i < length; ++i) {
 				if (array[i] === value) {
 					return true;
 				}
@@ -131,7 +128,7 @@ var LINQ = (function () {
 		elementAt: function (index) {
 			var element = this.elementAtOrDefault(index);
 
-			if (element === null) {
+			if (typeof element === 'undefined') {
 				throw new Error('No element at that index.');
 			}
 
@@ -139,9 +136,7 @@ var LINQ = (function () {
 		},
 
 		elementAtOrDefault: function (index) {
-			var array = this.toArray();
-
-			return array[index] || null;
+			return this.toArray()[index];
 		},
 
 		except: function (sequence) {
@@ -161,7 +156,7 @@ var LINQ = (function () {
 		first: function (predicate) {
 			var first = this.firstOrDefault(predicate);
 
-			if (first === null) {
+			if (typeof first === 'undefined') {
 				throw new Error('The source sequence is empty.');
 			}
 
@@ -169,19 +164,15 @@ var LINQ = (function () {
 		},
 		// Returns the first element of the sequence that satisfies a condition or a default value if no such element is found.
 		firstOrDefault: function (predicate) {
-			return (predicate ? this.where(predicate) : this).toArray()[0] || null;
+			return (predicate ? this.where(predicate) : this).toArray()[0];
 		},
 
 		groupBy: function (keySelector, elementSelector, resultSelector) {
-			if (typeof keySelector !== 'function') {
-				throw new Error('keySelector must be a function.');
-			}
-
 			return deferred(this, {
 				properties: {
-					keySelector: keySelector,
-					elementSelector: elementSelector,
-					resultSelector: resultSelector
+					keySelector: toFunction(keySelector),
+					elementSelector: toFunction(elementSelector, defaultSelector),
+					resultSelector: resultSelector // check
 				},
 
 				call: groupBy
@@ -192,22 +183,13 @@ var LINQ = (function () {
 			if (!inner) {
 				throw new Error('inner can not be null');
 			}
-			if (typeof outerKeySelector !== 'function') {
-				throw new Error('outerKeySelector must be a function.');
-			}
-			if (typeof innerKeySelector !== 'function') {
-				throw new Error('innerKeySelector must be a function.');
-			}
-			if (typeof resultSelector !== 'function') {
-				throw new Error('resultSelector must be a function.');
-			}
 
 			return deferred(this, {
 				properties: {
 					inner: new LINQ(inner),
-					outerKeySelector: outerKeySelector,
-					innerKeySelector: innerKeySelector,
-					resultSelector: resultSelector
+					outerKeySelector: toFunction(outerKeySelector),
+					innerKeySelector: toFunction(innerKeySelector),
+					resultSelector: toFunction(resultSelector)
 				},
 
 				call: groupJoin
@@ -232,22 +214,13 @@ var LINQ = (function () {
 			if (!inner) {
 				throw new Error('inner can not be null');
 			}
-			if (typeof outerKeySelector !== 'function') {
-				throw new Error('outerKeySelector must be a function.');
-			}
-			if (typeof innerKeySelector !== 'function') {
-				throw new Error('innerKeySelector must be a function.');
-			}
-			if (typeof resultSelector !== 'function') {
-				throw new Error('resultSelector must be a function.');
-			}
 
 			return deferred(this, {
 				properties: {
 					inner: new LINQ(inner),
-					outerKeySelector: outerKeySelector,
-					innerKeySelector: innerKeySelector,
-					resultSelector: resultSelector
+					outerKeySelector: toFunction(outerKeySelector),
+					innerKeySelector: toFunction(innerKeySelector),
+					resultSelector: toFunction(resultSelector)
 				},
 
 				call: join
@@ -257,7 +230,7 @@ var LINQ = (function () {
 		last: function (predicate) {
 			var last = this.lastOrDefault(predicate);
 
-			if (last === null) {
+			if (typeof last === 'undefined') {
 				throw new Error('The source sequence is empty.');
 			}
 
@@ -266,11 +239,7 @@ var LINQ = (function () {
 		lastOrDefault: function (predicate) {
 			var array = (predicate ? this.where(predicate) : this).toArray();
 
-			return array[array.length - 1] || null;
-		},
-		// Returns a number that represents how many elements in the specified sequence satisfy a condition.
-		longCount: function (predicate) {
-			return this.count(predicate);
+			return array[array.length - 1];
 		},
 		// Invokes a transform function on each element of a sequence and returns the maximum resulting value.
 		max: function (selector) {
@@ -310,20 +279,12 @@ var LINQ = (function () {
 		},
 
 		orderBy: function (keySelector, comparer) {
-			if (typeof keySelector !== 'function') {
-				throw new Error('keySelector must be a function.');
-			}
-
-			var operations = cloneArray(this._operations);
-
-			if (typeof comparer !== 'function') {
-				comparer = defaultComparer;
-			}
+			var operations = this._operations.slice();
 
 			operations.push({
 				properties: {
-					keySelector: keySelector,
-					comparer: comparer
+					keySelector: toFunction(keySelector),
+					comparer: toFunction(comparer, defaultComparer)
 				},
 
 				call: orderBy
@@ -332,8 +293,8 @@ var LINQ = (function () {
 			return new OrderedLINQ(this._source, operations);
 		},
 
-		orderByDescending: function (keySelector) {
-			return this.orderBy(keySelector, function (a, b) { return defaultComparer(b, a); });
+		orderByDescending: function (keySelector, comparer) {
+			return this.orderBy(keySelector, comparer).reverse();
 		},
 		// Inverts the order of the elements in a sequence.
 		reverse: function () {
@@ -348,7 +309,7 @@ var LINQ = (function () {
 		select: function (predicate) {
 			return deferred(this, {
 				properties: {
-					predicate: predicate
+					predicate: toFunction(predicate)
 				},
 
 				call: select
@@ -356,17 +317,10 @@ var LINQ = (function () {
 		},
 
 		selectMany: function (collectionSelector, resultSelector) {
-			if (typeof collectionSelector !== 'function') {
-				throw new Error('collectionSelector must be a function.');
-			}
-			if (typeof resultSelector !== 'function') {
-				throw new Error('resultSelector must be a function.');
-			}
-
 			return deferred(this, {
 				properties: {
-					collectionSelector: collectionSelector,
-					resultSelector: resultSelector
+					collectionSelector: toFunction(collectionSelector),
+					resultSelector: toFunction(resultSelector, defaultSelector2)
 				},
 
 				call: selectMany
@@ -385,7 +339,7 @@ var LINQ = (function () {
 				return false;
 			}
 
-			for (var i = 0, length = first.length; i < length; i++) {
+			for (var i = 0, length = first.length; i < length; ++i) {
 				if (first[i] !== second[i]) {
 					return false;
 				}
@@ -417,7 +371,7 @@ var LINQ = (function () {
 
 		sum: function (selector) {
 			var array = selector
-				? this.select(selector).toArray()
+				? this.select(toFunction(selector)).toArray()
 				: this.toArray();
 
 			var sum = 0;
@@ -443,7 +397,7 @@ var LINQ = (function () {
 		takeWhile: function (predicate) {
 			return deferred(this, {
 				properties: {
-					predicate: predicate
+					predicate: toFunction(predicate)
 				},
 
 				call: takeWhile
@@ -454,7 +408,7 @@ var LINQ = (function () {
 			var array = this._source;
 
 			// perform operations
-			for (var i = 0, length = this._operations.length; i < length; i++) {
+			for (var i = 0, length = this._operations.length; i < length; ++i) {
 				array = this._operations[i].call(array, this._operations[i].properties);
 			}
 
@@ -462,17 +416,13 @@ var LINQ = (function () {
 		},
 
 		toDictionary: function (keySelector, elementSelector) {
-			if (typeof keySelector !== 'function') {
-				throw new Error('keySelector must be a function.');
-			}
-			if (typeof elementSelector !== 'function') {
-				elementSelector = function (e) { return e; };
-			}
+			keySelector = toFunction(keySelector);
+			elementSelector = toFunction(elementSelector, defaultSelector);
 
 			var result = {};
 			var array = this.toArray();
 
-			for (var i = 0, length = array.length; i < length; i++) {
+			for (var i = 0, length = array.length; i < length; ++i) {
 				var key = keySelector(array[i]);
 
 				if (result[key]) {
@@ -490,11 +440,7 @@ var LINQ = (function () {
 		},
 
 		toLookup: function (keySelector, elementSelector) {
-			if (typeof keySelector !== 'function') {
-				throw new Error('keySelector must be a function.');
-			}
-
-			return toLookup(this.toArray(), keySelector, elementSelector);
+			return toLookup(this.toArray(), toFunction(keySelector), toFunction(elementSelector, defaultSelector));
 		},
 
 		union: function (sequence) {
@@ -503,13 +449,9 @@ var LINQ = (function () {
 		// Filters a sequence of values based on a predicate. Each element's index is used in the logic of the predicate function.
 		// predicate<element, int, boolean>
 		where: function (predicate) {
-			if (typeof predicate !== 'function') {
-				throw new Error('predicate must be a function.');
-			}
-
 			return deferred(this, {
 				properties: {
-					predicate: predicate
+					predicate: toFunction(predicate)
 				},
 
 				call: where
@@ -520,14 +462,11 @@ var LINQ = (function () {
 			if (!sequence) {
 				throw new Error('sequence can not be null');
 			}
-			if (typeof resultSelector !== 'function') {
-				throw new Error('resultSelector must be a function.');
-			}
 
 			return deferred(this, {
 				properties: {
 					sequence: new LINQ(sequence),
-					resultSelector: resultSelector
+					resultSelector: toFunction(resultSelector)
 				},
 
 				call: zip
@@ -547,20 +486,12 @@ var LINQ = (function () {
 	OrderedLINQ.prototype = new LINQ([]);
 
 	OrderedLINQ.prototype.thenBy = function (keySelector, comparer) {
-		if (typeof keySelector !== 'function') {
-			throw new Error('keySelector must be a function.');
-		}
-
-		var cloned = cloneArray(this._operations);
+		var cloned = this._operations.slice();
 		var last = cloned[cloned.length - 1];
 
-		if (typeof comparer !== 'function') {
-			comparer = defaultComparer;
-		}
-
 		last.properties.thenBy = {
-			keySelector: keySelector,
-			comparer: comparer
+			keySelector: toFunction(keySelector),
+			comparer: toFunction(comparer, defaultComparer)
 		};
 
 		last.call = thenBy;
@@ -568,8 +499,8 @@ var LINQ = (function () {
 		return new OrderedLINQ(this._source, cloned);
 	};
 
-	OrderedLINQ.prototype.thenByDescending = function (keySelector) {
-		return this.thenBy(keySelector, function (a, b) { return defaultComparer(b, a); });
+	OrderedLINQ.prototype.thenByDescending = function (keySelector, comparer) {
+		return this.thenBy(keySelector, comparer).reverse();
 	};
 
 	return LINQ;
@@ -581,12 +512,12 @@ var LINQ = (function () {
 	function concat(source, properties) {
 		var result = [];
 
-		for (var i = 0, length = source.length; i < length; i++) {
+		for (var i = 0, length = source.length; i < length; ++i) {
 			result.push(source[i]);
 		}
 
 		var array = properties.sequence.toArray();
-		for (var i = 0, length = array.length; i < length; i++) {
+		for (var i = 0, length = array.length; i < length; ++i) {
 			result.push(array[i]);
 		}
 
@@ -598,10 +529,10 @@ var LINQ = (function () {
 
 		var flags = LINQ.repeat(true, source.length).toArray();
 
-		for (var i = 0, length = source.length; i < length; i++) {
+		for (var i = 0, length = source.length; i < length; ++i) {
 			if (!flags[i]) { continue; }
 
-			for (var j = i + 1; j < length; j++) {
+			for (var j = i + 1; j < length; ++j) {
 				if (!flags[j]) { continue; }
 
 				if (source[i] === source[j]) {
@@ -618,7 +549,7 @@ var LINQ = (function () {
 	function range(source, properties) {
 		var array = [];
 
-		for (var i = 0; i < properties.count; i++) {
+		for (var i = 0; i < properties.count; ++i) {
 			array.push(i + properties.start);
 		}
 
@@ -628,7 +559,7 @@ var LINQ = (function () {
 	function repeat(source, properties) {
 		var array = [];
 
-		for (var i = 0; i < properties.count; i++) {
+		for (var i = 0; i < properties.count; ++i) {
 			array.push(properties.element);
 		}
 
@@ -638,7 +569,7 @@ var LINQ = (function () {
 	function except(source, properties) {
 		var result = [];
 
-		for (var i = 0, length = source.length; i < length; i++) {
+		for (var i = 0, length = source.length; i < length; ++i) {
 			if (!properties.sequence.contains(array[i])) {
 				result.push(array[i]);
 			}
@@ -668,7 +599,7 @@ var LINQ = (function () {
 
 		var result = [];
 
-		for (var i = 0, length = source.length; i < length; i++) {
+		for (var i = 0, length = source.length; i < length; ++i) {
 			var key = properties.outerKeySelector(source[i]);
 
 			result.push(properties.resultSelector(source[i], inner[key] || []));
@@ -680,7 +611,7 @@ var LINQ = (function () {
 	function intersect(source, properties) {
 		var result = [];
 
-		for (var i = 0, length = source.length; i < length; i++) {
+		for (var i = 0, length = source.length; i < length; ++i) {
 			if (properties.sequence.contains(source[i])) {
 				result.push(source[i]);
 			}
@@ -694,13 +625,14 @@ var LINQ = (function () {
 
 		var result = [];
 
-		for (var i = 0, ii = source.length; i < ii; i++) {
+		for (var i = 0, ii = source.length; i < ii; ++i) {
 			var key = properties.outerKeySelector(source[i]);
 
-			if (inner[key]) {
-				for (var i = 0, jj = inner[key].length; i < jj; i++) {
-					result.push(properties.resultSelector(source[i], inner[key][j]));
-				}
+			var inner_key = inner[key];
+			if (!inner_key) continue;
+
+			for (var j = 0, jj = inner_key.length; j < jj; ++j) {
+				result.push(properties.resultSelector(source[i], inner_key[j]));
 			}
 		}
 
@@ -709,7 +641,7 @@ var LINQ = (function () {
 
 	function orderBy(source, properties) {
 		// we should clone source because sort changes array
-		return cloneArray(source).sort(function (a, b) {
+		return source.slice().sort(function (a, b) {
 			return properties.comparer(
 				properties.keySelector(a),
 				properties.keySelector(b)
@@ -724,7 +656,7 @@ var LINQ = (function () {
 	function select(source, properties) {
 		var result = [];
 
-		for (var i = 0, length = source.length; i < length; i++) {
+		for (var i = 0, length = source.length; i < length; ++i) {
 			result.push(properties.predicate(source[i], i));
 		}
 
@@ -734,11 +666,11 @@ var LINQ = (function () {
 	function selectMany(source, properties) {
 		var result = [];
 
-		for (var i = 0, ii = source.length; i < ii; i++) {
+		for (var i = 0, ii = source.length; i < ii; ++i) {
 			var collection = properties.collectionSelector(source[i], i);
 			var array = (new LINQ(collection)).toArray();
 
-			for (var j = 0, jj = array.length; j < jj; j++) {
+			for (var j = 0, jj = array.length; j < jj; ++j) {
 				result.push(properties.resultSelector(source[i], array[j]));
 			}
 		}
@@ -754,12 +686,12 @@ var LINQ = (function () {
 		var array = [];
 
 		var length = source.length;
-		for (var i = 0; i < length; i++) {
+		for (var i = 0; i < length; ++i) {
 			if (!properties.predicate(source[i], i))
 				break;
 		}
 
-		for (; i < length; i++) {
+		for (; i < length; ++i) {
 			array.push(source[i]);
 		}
 
@@ -773,7 +705,7 @@ var LINQ = (function () {
 	function takeWhile(source, properties) {
 		var array = [];
 
-		for (var i = 0, length = source.length; i < length; i++) {
+		for (var i = 0, length = source.length; i < length; ++i) {
 			if (!properties.predicate(source[i], i)) {
 				break;
 			}
@@ -785,7 +717,7 @@ var LINQ = (function () {
 	}
 
 	function thenBy(source, properties) {
-		return cloneArray(source).sort(function (a, b) {
+		return source.slice().sort(function (a, b) {
 			var compare = properties.comparer(
 				properties.keySelector(a),
 				properties.keySelector(b)
@@ -804,13 +736,11 @@ var LINQ = (function () {
 
 	// defined here for using in two places
 	function toLookup(source, keySelector, elementSelector) {
-		if (typeof elementSelector !== 'function') {
-			elementSelector = function (e) { return e; };
-		}
-
+		elementSelector = toFunction(elementSelector, defaultSelector);
+		
 		var result = {};
 
-		for (var i = 0, length = source.length; i < length; i++) {
+		for (var i = 0, length = source.length; i < length; ++i) {
 			var key = keySelector(source[i]);
 
 			if (!result[key]) {
@@ -832,7 +762,7 @@ var LINQ = (function () {
 
 		var second = properties.sequence.toArray();
 
-		for (var i = 0, length = min(source.length, second.length); i < length; i++) {
+		for (var i = 0, length = min(source.length, second.length); i < length; ++i) {
 			result.push(properties.resultSelector(source[i], second[i]));
 		}
 
@@ -843,20 +773,18 @@ var LINQ = (function () {
 	 *	Utils
 	 */
 	
+	function defaultSelector(e) {
+		return e;
+	}
+
+	function defaultSelector2(e1, e2) {
+		return e2;
+	}
+
 	function defaultComparer(a, b) {
 		if (a < b) return -1;
 		if (a > b) return 1;
 		return 0;
-	}
-
-	function cloneArray(array) {
-		var result = new Array(array.length);
-
-		for (var i = 0, length = array.length; i < length; i++) {
-			result[i] = array[i];
-		}
-
-		return result;
 	}
 
 	function min(a, b) {
@@ -865,11 +793,26 @@ var LINQ = (function () {
 
 	// for easy creating functions of deferred execution
 	function deferred(linq, add) {
-		var cloned = cloneArray(linq._operations);
+		var cloned = linq._operations.slice();
 
 		cloned.push(add);
 
 		return new LINQ(linq._source, cloned);
 	}
 
-})();
+	function toFunction(expr, defaultFunction) {
+		if (typeof expr === 'function') return expr;
+		if (typeof expr === 'string') {
+			var index = expr.indexOf('=>');
+
+			if (index !== -1)
+				return new Function(expr.substr(0, index), 'return ' + expr.substr(index + 2));
+
+			return new Function('$,$$,$$$,$$$$', 'return ' + expr);
+		}
+
+		if (defaultFunction) return defaultFunction;
+
+		throw new Error('parameter must be a function or lambda');
+	}
+}());
