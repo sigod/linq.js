@@ -6,10 +6,10 @@
  * http://opensource.org/licenses/MIT
  */
 
-; var LINQ = (function () {
+;(function (exports) {
 	"use strict";
 
-	var LINQ = function (source, operations) {
+	exports.LINQ = function (source, operations) {
 		if (!(this instanceof LINQ)) return new LINQ(source, operations);
 
 		if (Object.prototype.toString.call(source) === '[object Array]') {
@@ -25,6 +25,8 @@
 		
 		this._operations = operations || [];
 	};
+
+	var LINQ = exports.LINQ;
 
 	LINQ.range = function (start, count) {
 		return new LINQ([], [{
@@ -497,8 +499,6 @@
 		return this.thenBy(keySelector, comparer).reverse();
 	};
 
-	return LINQ;
-
 	/*
 	 *	Deferred execution
 	 */
@@ -809,4 +809,4 @@
 
 		throw new Error('parameter must be a function or lambda');
 	}
-}());
+}(this));
