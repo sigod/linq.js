@@ -1,5 +1,5 @@
 /*!
- * linq.js 1.0.0
+ * linq.js 1.1.0
  * https://github.com/sigod/linq.js
  *
  * Licensed under the MIT license.
