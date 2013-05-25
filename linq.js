@@ -39,14 +39,13 @@
 	};
 
 	LINQ.repeat = function (element, count) {
-		return new LINQ([], [{
-			properties: {
-				element: element,
-				count: count
-			},
+		var array = [];
 
-			call: repeat
-		}]);
+		for (var i = 0; i < count; ++i) {
+			array.push(element);
+		}
+
+		return new LINQ(array);
 	};
 
 	LINQ.prototype = {
@@ -534,16 +533,6 @@
 			}
 
 			array.push(source[i]);
-		}
-
-		return array;
-	}
-	
-	function repeat(source, properties) {
-		var array = [];
-
-		for (var i = 0; i < properties.count; ++i) {
-			array.push(properties.element);
 		}
 
 		return array;
