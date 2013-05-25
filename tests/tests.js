@@ -137,6 +137,28 @@ test('selectMany', function () {
 	deepEqual(result, expected, 'wrong result');
 });
 
+test('toDictionary', function () {
+	var list = [
+		{ company: "Coho Vineyard", weight: 25.2, trackingNumber: 89453312 },
+		{ company: "Lucerne Publishing", weight: 18.7, trackingNumber: 89112755 },
+		{ company: "Wingtip Toys", weight: 6.0, trackingNumber: 299456122 },
+		{ company: "Adventure Works", weight: 33.8, trackingNumber: 4665518773 }
+	];
+
+	var result = LINQ(list).toDictionary('$.trackingNumber');
+
+	console.log(result);
+
+	var expected = {
+		'89453312': { company: "Coho Vineyard", weight: 25.2, trackingNumber: 89453312 },
+		'89112755': { company: "Lucerne Publishing", weight: 18.7, trackingNumber: 89112755 },
+		'299456122': { company: "Wingtip Toys", weight: 6.0, trackingNumber: 299456122 },
+		'4665518773': { company: "Adventure Works", weight: 33.8, trackingNumber: 4665518773 }
+	};
+
+	deepEqual(result, expected);
+});
+
 test('where', function() {
 	var original = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
 	var test_array = original.slice();
