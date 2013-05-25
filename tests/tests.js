@@ -1,4 +1,8 @@
 
+test('range', function () {
+	deepEqual(LINQ.range(0, 5).toArray(), [0, 1, 2, 3, 4]);
+});
+
 test('aggregate', function () {
 	var original = [1, 2, 3, 4, 5, 6];
 

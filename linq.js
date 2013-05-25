@@ -29,14 +29,13 @@
 	var LINQ = exports.LINQ;
 
 	LINQ.range = function (start, count) {
-		return new LINQ([], [{
-			properties: {
-				start: start,
-				count: count
-			},
+		var array = [];
 
-			call: range
-		}]);
+		for (var i = start, end = start + count; i < end; ++i) {
+			array.push(i);
+		}
+
+		return new LINQ(array);
 	};
 
 	LINQ.repeat = function (element, count) {
@@ -535,16 +534,6 @@
 			}
 
 			array.push(source[i]);
-		}
-
-		return array;
-	}
-	
-	function range(source, properties) {
-		var array = [];
-
-		for (var i = 0; i < properties.count; ++i) {
-			array.push(i + properties.start);
 		}
 
 		return array;
