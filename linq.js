@@ -12,10 +12,10 @@
 	exports.LINQ = function (source, operations) {
 		if (!(this instanceof LINQ)) return new LINQ(source, operations);
 
-		if (Object.prototype.toString.call(source) === '[object Array]') {
+		if (is('Array', source)) {
 			this._source = source;
 		}
-		else if (typeof source === 'object' && source._isLINQ === true)
+		else if (is('Object', source) && source._isLINQ === true)
 		{
 			return source;
 		}
@@ -553,7 +553,7 @@
 	function groupBy(source, properties) {
 		var result = [];
 
-		if (typeof properties.resultSelector !== 'function') {
+		if (!is('Function', properties.resultSelector)) {
 			properties.resultSelector = function (key, linq) { linq.key = key; return linq; };
 		}
 
@@ -773,8 +773,8 @@
 	}
 
 	function toFunction(expr, defaultFunction) {
-		if (typeof expr === 'function') return expr;
-		if (typeof expr === 'string') {
+		if (is('Function', expr)) return expr;
+		if (is('String', expr)) {
 			var index = expr.indexOf('=>');
 
 			if (index !== -1)
@@ -786,5 +786,10 @@
 		if (defaultFunction) return defaultFunction;
 
 		throw new Error('parameter must be a function or lambda');
+	}
+
+	function is(type, object) {
+		var clas = Object.prototype.toString.call(object).slice(8, -1);
+		return object !== undefined && object !== null && clas === type;
 	}
 }(this));
