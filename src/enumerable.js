@@ -1,422 +1,418 @@
 
-LINQ.prototype = {
-	constructor: LINQ,
+LINQ.prototype = new AbstractLINQ();
 
-	_isLINQ: true,
+LINQ.prototype.aggregate = function (seed, func, resultSelector) {
+	func = toFunction(func);
 
-	aggregate: function (seed, func, resultSelector) {
-		func = toFunction(func);
+	var accumulate = seed,
+		array = this.toArray();
 
-		var accumulate = seed,
-			array = this.toArray();
+	for (var i = 0, length = array.length; i < length; ++i) {
+		accumulate = func(accumulate, array[i]);
+	}
 
-		for (var i = 0, length = array.length; i < length; ++i) {
-			accumulate = func(accumulate, array[i]);
+	return toFunction(resultSelector, defaultSelector)(accumulate);
+};
+
+LINQ.prototype.all = function (predicate) {
+	return this.toArray().every(toFunction(predicate));
+};
+
+LINQ.prototype.any = function (predicate) {
+	return this.toArray().some(toFunction(predicate));
+};
+
+LINQ.prototype.average = function (predicate) {
+	var list = this.toList(),
+		count = list.count(predicate);
+
+	if (count === 0) {
+		throw new Error('The source sequence is empty.');
+	}
+
+	return list.sum(predicate) / count;
+};
+
+LINQ.prototype.concat = function (sequence) {
+	if (!sequence) {
+		throw new Error('sequence can not be null');
+	}
+
+	return deferred(this, {
+		properties: {
+			sequence: new LINQ(sequence)
+		},
+
+		call: concat
+	});
+};
+
+LINQ.prototype.contains = function (value) {
+	var array = this.toArray();
+
+	for (var i = 0, length = array.length; i < length; ++i) {
+		if (array[i] === value) {
+			return true;
 		}
+	}
 
-		return toFunction(resultSelector, defaultSelector)(accumulate);
-	},
+	return false;
+};
 
-	all: function (predicate) {
-		return this.toArray().every(toFunction(predicate));
-	},
+LINQ.prototype.count = function (predicate) {
+	return (predicate ? this.where(predicate) : this).toArray().length;
+};
 
-	any: function (predicate) {
-		return this.toArray().some(toFunction(predicate));
-	},
+LINQ.prototype.distinct = function () {
+	return deferred(this, {
+		properties: {},
 
-	average: function (predicate) {
-		var list = this.toList(),
-			count = list.count(predicate);
+		call: distinct
+	});
+};
 
-		if (count === 0) {
-			throw new Error('The source sequence is empty.');
+LINQ.prototype.elementAt = function (index) {
+	var element = this.elementAtOrDefault(index);
+
+	if (typeof element === 'undefined') {
+		throw new Error('No element at that index.');
+	}
+
+	return element;
+};
+
+LINQ.prototype.elementAtOrDefault = function (index) {
+	return this.toArray()[index];
+};
+
+LINQ.prototype.except = function (sequence) {
+	if (!sequence) {
+		throw new Error('sequence can not be null');
+	}
+
+	return deferred(this, {
+		properties: {
+			sequence: new LINQ(sequence)
+		},
+
+		call: except
+	});
+};
+
+LINQ.prototype.first = function (predicate) {
+	var first = this.firstOrDefault(predicate);
+
+	if (typeof first === 'undefined') {
+		throw new Error('The source sequence is empty.');
+	}
+
+	return first;
+};
+
+LINQ.prototype.firstOrDefault = function (predicate) {
+	return (predicate ? this.where(predicate) : this).toArray()[0];
+};
+
+LINQ.prototype.groupBy = function (keySelector, elementSelector, resultSelector) {
+	return deferred(this, {
+		properties: {
+			keySelector: toFunction(keySelector),
+			elementSelector: toFunction(elementSelector, defaultSelector),
+			resultSelector: resultSelector // check
+		},
+
+		call: groupBy
+	});
+};
+
+LINQ.prototype.groupJoin = function (inner, outerKeySelector, innerKeySelector, resultSelector) {
+	if (!inner) {
+		throw new Error('inner can not be null');
+	}
+
+	return deferred(this, {
+		properties: {
+			inner: new LINQ(inner),
+			outerKeySelector: toFunction(outerKeySelector),
+			innerKeySelector: toFunction(innerKeySelector),
+			resultSelector: toFunction(resultSelector)
+		},
+
+		call: groupJoin
+	});
+};
+
+LINQ.prototype.intersect = function(sequence) {
+	if (!sequence) {
+		throw new Error('sequence can not be null');
+	}
+
+	return deferred(this, {
+		properties: {
+			sequence: new LINQ(sequence)
+		},
+
+		call: intersect
+	});
+};
+
+LINQ.prototype.join = function (inner, outerKeySelector, innerKeySelector, resultSelector) {
+	if (!inner) {
+		throw new Error('inner can not be null');
+	}
+
+	return deferred(this, {
+		properties: {
+			inner: new LINQ(inner),
+			outerKeySelector: toFunction(outerKeySelector),
+			innerKeySelector: toFunction(innerKeySelector),
+			resultSelector: toFunction(resultSelector)
+		},
+
+		call: join
+	});
+};
+
+LINQ.prototype.last = function (predicate) {
+	var last = this.lastOrDefault(predicate);
+
+	if (typeof last === 'undefined') {
+		throw new Error('The source sequence is empty.');
+	}
+
+	return last;
+};
+
+LINQ.prototype.lastOrDefault = function (predicate) {
+	var array = (predicate ? this.where(predicate) : this).toArray();
+
+	return array[array.length - 1];
+};
+
+LINQ.prototype.max = function (selector) {
+	var array = (selector ? this.select(selector) : this).toArray();
+
+	if (array.length === 0) {
+		throw new Error('The source sequence is empty.');
+	}
+
+	var max = array[0];
+
+	for (var i = array.length; i--;) {
+		if (max < array[i]) {
+			max = array[i];
 		}
+	}
 
-		return list.sum(predicate) / count;
-	},
+	return max;
+};
 
-	concat: function (sequence) {
-		if (!sequence) {
-			throw new Error('sequence can not be null');
+LINQ.prototype.min = function (selector) {
+	var array = (selector ? this.select(selector) : this).toArray();
+
+	if (array.length === 0) {
+		throw new Error('The source sequence is empty.');
+	}
+
+	var min = array[0];
+
+	for (var i = array.length; i--;) {
+		if (min > array[i]) {
+			min = array[i];
 		}
+	}
 
-		return deferred(this, {
-			properties: {
-				sequence: new LINQ(sequence)
-			},
+	return min;
+};
 
-			call: concat
-		});
-	},
+LINQ.prototype.orderBy = function (keySelector, comparer) {
+	var operations = this._operations.slice();
 
-	contains: function (value) {
-		var array = this.toArray();
+	operations.push({
+		properties: {
+			keySelector: toFunction(keySelector),
+			comparer: toFunction(comparer, defaultComparer)
+		},
 
-		for (var i = 0, length = array.length; i < length; ++i) {
-			if (array[i] === value) {
-				return true;
-			}
-		}
+		call: orderBy
+	});
 
+	return new OrderedLINQ(this._source, operations);
+};
+
+LINQ.prototype.orderByDescending = function (keySelector, comparer) {
+	return this.orderBy(keySelector, comparer).reverse();
+};
+
+LINQ.prototype.reverse = function () {
+	return deferred(this, {
+		properties: {},
+
+		call: reverse
+	});
+};
+
+LINQ.prototype.select = function (predicate) {
+	return deferred(this, {
+		properties: {
+			predicate: toFunction(predicate)
+		},
+
+		call: select
+	});
+};
+
+LINQ.prototype.selectMany = function (collectionSelector, resultSelector) {
+	return deferred(this, {
+		properties: {
+			collectionSelector: toFunction(collectionSelector),
+			resultSelector: toFunction(resultSelector, defaultSelector2)
+		},
+
+		call: selectMany
+	});
+};
+
+LINQ.prototype.sequenceEqual = function (sequence) {
+	if (!sequence) {
+		throw new Error('sequence can not be null');
+	}
+
+	var first = this.toArray();
+	var second = (new LINQ(sequence)).toArray();
+
+	if (first.length !== second.length) {
 		return false;
-	},
+	}
 
-	count: function (predicate) {
-		return (predicate ? this.where(predicate) : this).toArray().length;
-	},
-
-	distinct: function () {
-		return deferred(this, {
-			properties: {},
-
-			call: distinct
-		});
-	},
-
-	elementAt: function (index) {
-		var element = this.elementAtOrDefault(index);
-
-		if (typeof element === 'undefined') {
-			throw new Error('No element at that index.');
-		}
-
-		return element;
-	},
-
-	elementAtOrDefault: function (index) {
-		return this.toArray()[index];
-	},
-
-	except: function (sequence) {
-		if (!sequence) {
-			throw new Error('sequence can not be null');
-		}
-
-		return deferred(this, {
-			properties: {
-				sequence: new LINQ(sequence)
-			},
-
-			call: except
-		});
-	},
-
-	first: function (predicate) {
-		var first = this.firstOrDefault(predicate);
-
-		if (typeof first === 'undefined') {
-			throw new Error('The source sequence is empty.');
-		}
-
-		return first;
-	},
-
-	firstOrDefault: function (predicate) {
-		return (predicate ? this.where(predicate) : this).toArray()[0];
-	},
-
-	groupBy: function (keySelector, elementSelector, resultSelector) {
-		return deferred(this, {
-			properties: {
-				keySelector: toFunction(keySelector),
-				elementSelector: toFunction(elementSelector, defaultSelector),
-				resultSelector: resultSelector // check
-			},
-
-			call: groupBy
-		});
-	},
-
-	groupJoin: function (inner, outerKeySelector, innerKeySelector, resultSelector) {
-		if (!inner) {
-			throw new Error('inner can not be null');
-		}
-
-		return deferred(this, {
-			properties: {
-				inner: new LINQ(inner),
-				outerKeySelector: toFunction(outerKeySelector),
-				innerKeySelector: toFunction(innerKeySelector),
-				resultSelector: toFunction(resultSelector)
-			},
-
-			call: groupJoin
-		});
-	},
-
-	intersect: function(sequence) {
-		if (!sequence) {
-			throw new Error('sequence can not be null');
-		}
-
-		return deferred(this, {
-			properties: {
-				sequence: new LINQ(sequence)
-			},
-
-			call: intersect
-		});
-	},
-
-	join: function (inner, outerKeySelector, innerKeySelector, resultSelector) {
-		if (!inner) {
-			throw new Error('inner can not be null');
-		}
-
-		return deferred(this, {
-			properties: {
-				inner: new LINQ(inner),
-				outerKeySelector: toFunction(outerKeySelector),
-				innerKeySelector: toFunction(innerKeySelector),
-				resultSelector: toFunction(resultSelector)
-			},
-
-			call: join
-		});
-	},
-
-	last: function (predicate) {
-		var last = this.lastOrDefault(predicate);
-
-		if (typeof last === 'undefined') {
-			throw new Error('The source sequence is empty.');
-		}
-
-		return last;
-	},
-
-	lastOrDefault: function (predicate) {
-		var array = (predicate ? this.where(predicate) : this).toArray();
-
-		return array[array.length - 1];
-	},
-
-	max: function (selector) {
-		var array = (selector ? this.select(selector) : this).toArray();
-
-		if (array.length === 0) {
-			throw new Error('The source sequence is empty.');
-		}
-
-		var max = array[0];
-
-		for (var i = array.length; i--;) {
-			if (max < array[i]) {
-				max = array[i];
-			}
-		}
-
-		return max;
-	},
-
-	min: function (selector) {
-		var array = (selector ? this.select(selector) : this).toArray();
-
-		if (array.length === 0) {
-			throw new Error('The source sequence is empty.');
-		}
-
-		var min = array[0];
-
-		for (var i = array.length; i--;) {
-			if (min > array[i]) {
-				min = array[i];
-			}
-		}
-
-		return min;
-	},
-
-	orderBy: function (keySelector, comparer) {
-		var operations = this._operations.slice();
-
-		operations.push({
-			properties: {
-				keySelector: toFunction(keySelector),
-				comparer: toFunction(comparer, defaultComparer)
-			},
-
-			call: orderBy
-		});
-
-		return new OrderedLINQ(this._source, operations);
-	},
-
-	orderByDescending: function (keySelector, comparer) {
-		return this.orderBy(keySelector, comparer).reverse();
-	},
-
-	reverse: function () {
-		return deferred(this, {
-			properties: {},
-
-			call: reverse
-		});
-	},
-
-	select: function (predicate) {
-		return deferred(this, {
-			properties: {
-				predicate: toFunction(predicate)
-			},
-
-			call: select
-		});
-	},
-
-	selectMany: function (collectionSelector, resultSelector) {
-		return deferred(this, {
-			properties: {
-				collectionSelector: toFunction(collectionSelector),
-				resultSelector: toFunction(resultSelector, defaultSelector2)
-			},
-
-			call: selectMany
-		});
-	},
-
-	sequenceEqual: function (sequence) {
-		if (!sequence) {
-			throw new Error('sequence can not be null');
-		}
-
-		var first = this.toArray();
-		var second = (new LINQ(sequence)).toArray();
-
-		if (first.length !== second.length) {
+	for (var i = 0, length = first.length; i < length; ++i) {
+		if (first[i] !== second[i]) {
 			return false;
 		}
-
-		for (var i = 0, length = first.length; i < length; ++i) {
-			if (first[i] !== second[i]) {
-				return false;
-			}
-		}
-
-		return false;
-	},
-
-	skip: function (count) {
-		return deferred(this, {
-			properties: {
-				count: count
-			},
-
-			call: skip
-		});
-	},
-
-	skipWhile: function (predicate) {
-		return deferred(this, {
-			properties: {
-				predicate: predicate
-			},
-
-			call: skipWhile
-		});
-	},
-
-	sum: function (selector) {
-		var array = selector
-			? this.select(toFunction(selector)).toArray()
-			: this.toArray();
-
-		var sum = 0;
-
-		for (var i = array.length; i--;) {
-			sum += array[i];
-		}
-
-		return sum;
-	},
-
-	take: function (count) {
-		return deferred(this, {
-			properties: {
-				count: count
-			},
-			
-			call: take
-		});
-	},
-
-	takeWhile: function (predicate) {
-		return deferred(this, {
-			properties: {
-				predicate: toFunction(predicate)
-			},
-
-			call: takeWhile
-		});
-	},
-
-	toArray: function () {
-		var array = this._source;
-
-		for (var i = 0, length = this._operations.length; i < length; ++i) {
-			array = this._operations[i].call(array, this._operations[i].properties);
-		}
-
-		return array;
-	},
-
-	toDictionary: function (keySelector, elementSelector) {
-		keySelector = toFunction(keySelector);
-		elementSelector = toFunction(elementSelector, defaultSelector);
-
-		var result = {};
-		var array = this.toArray();
-
-		for (var i = 0, length = array.length; i < length; ++i) {
-			var key = keySelector(array[i]);
-
-			if (result[key]) {
-				throw new Error('keySelector produces duplicate keys for two elements.');
-			}
-
-			result[key] = elementSelector(array[i]);
-		}
-
-		return result;
-	},
-
-	toList: function () {
-		return new LINQ(this.toArray());
-	},
-
-	toLookup: function (keySelector, elementSelector) {
-		return toLookup(this.toArray(), toFunction(keySelector), toFunction(elementSelector, defaultSelector));
-	},
-
-	union: function (sequence) {
-		return this.concat(sequence).distinct();
-	},
-
-	where: function (predicate) {
-		return deferred(this, {
-			properties: {
-				predicate: toFunction(predicate)
-			},
-
-			call: where
-		});
-	},
-
-	zip: function (sequence, resultSelector) {
-		if (!sequence) {
-			throw new Error('sequence can not be null');
-		}
-
-		return deferred(this, {
-			properties: {
-				sequence: new LINQ(sequence),
-				resultSelector: toFunction(resultSelector)
-			},
-
-			call: zip
-		});
 	}
+
+	return false;
+};
+
+LINQ.prototype.skip = function (count) {
+	return deferred(this, {
+		properties: {
+			count: count
+		},
+
+		call: skip
+	});
+};
+
+LINQ.prototype.skipWhile = function (predicate) {
+	return deferred(this, {
+		properties: {
+			predicate: predicate
+		},
+
+		call: skipWhile
+	});
+};
+
+LINQ.prototype.sum = function (selector) {
+	var array = selector
+		? this.select(toFunction(selector)).toArray()
+		: this.toArray();
+
+	var sum = 0;
+
+	for (var i = array.length; i--;) {
+		sum += array[i];
+	}
+
+	return sum;
+};
+
+LINQ.prototype.take = function (count) {
+	return deferred(this, {
+		properties: {
+			count: count
+		},
+		
+		call: take
+	});
+};
+
+LINQ.prototype.takeWhile = function (predicate) {
+	return deferred(this, {
+		properties: {
+			predicate: toFunction(predicate)
+		},
+
+		call: takeWhile
+	});
+};
+
+LINQ.prototype.toArray = function () {
+	var array = this._source;
+
+	for (var i = 0, length = this._operations.length; i < length; ++i) {
+		array = this._operations[i].call(array, this._operations[i].properties);
+	}
+
+	return array;
+};
+
+LINQ.prototype.toDictionary = function (keySelector, elementSelector) {
+	keySelector = toFunction(keySelector);
+	elementSelector = toFunction(elementSelector, defaultSelector);
+
+	var result = {};
+	var array = this.toArray();
+
+	for (var i = 0, length = array.length; i < length; ++i) {
+		var key = keySelector(array[i]);
+
+		if (result[key]) {
+			throw new Error('keySelector produces duplicate keys for two elements.');
+		}
+
+		result[key] = elementSelector(array[i]);
+	}
+
+	return result;
+};
+
+LINQ.prototype.toList = function () {
+	return new LINQ(this.toArray());
+};
+
+LINQ.prototype.toLookup = function (keySelector, elementSelector) {
+	return toLookup(this.toArray(), toFunction(keySelector), toFunction(elementSelector, defaultSelector));
+};
+
+LINQ.prototype.union = function (sequence) {
+	return this.concat(sequence).distinct();
+};
+
+LINQ.prototype.where = function (predicate) {
+	return deferred(this, {
+		properties: {
+			predicate: toFunction(predicate)
+		},
+
+		call: where
+	});
+};
+
+LINQ.prototype.zip = function (sequence, resultSelector) {
+	if (!sequence) {
+		throw new Error('sequence can not be null');
+	}
+
+	return deferred(this, {
+		properties: {
+			sequence: new LINQ(sequence),
+			resultSelector: toFunction(resultSelector)
+		},
+
+		call: zip
+	});
 };
 
 /*
