@@ -21,15 +21,6 @@ function min(a, b) {
 	return a < b ? a : b;
 }
 
-// for easy creating functions of deferred execution
-function deferred(linq, add) {
-	var cloned = linq._operations.slice();
-
-	cloned.push(add);
-
-	return new LINQ(linq._source, cloned);
-}
-
 function toFunction(expr, defaultFunction) {
 	if (is('Function', expr)) return expr;
 	if (is('String', expr)) {
